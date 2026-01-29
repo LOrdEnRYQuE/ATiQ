@@ -24,8 +24,9 @@ export const supabase = (() => {
         auth: {
           getUser: () => Promise.resolve({ data: { user: null }, error: null }),
           getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-          signInWithOAuth: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured') }),
-          signUp: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured') }),
+          signInWithOAuth: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured - OAuth not available') }),
+          signUp: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured - Sign up not available') }),
+          signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured - Sign in not available') }),
           signOut: () => Promise.resolve({ error: null }),
           onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
         },
@@ -51,7 +52,8 @@ export const supabase = (() => {
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
         signInWithOAuth: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured') }),
-        signUp: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured') }),
+        signUp: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured') }),
+        signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured') }),
         signOut: () => Promise.resolve({ error: null })
       },
       from: () => ({
