@@ -92,30 +92,27 @@ export const supabase = (() => {
 // Create a Supabase client for server-side usage
 export const supabaseAdmin = (() => {
   if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    // Return a mock client during build to prevent failures
-    if (typeof window === 'undefined') {
-      console.warn('Supabase service role key not found. Returning mock client for build.')
-      return {
-        auth: {
-          getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-          getUserById: () => Promise.resolve({ data: { user: null }, error: null })
-        },
-        from: () => ({
-          select: () => ({ data: null, error: new Error('Supabase not configured') }),
-          insert: () => ({ data: null, error: new Error('Supabase not configured') }),
-          update: () => ({ data: null, error: new Error('Supabase not configured') }),
-          delete: () => ({ data: null, error: new Error('Supabase not configured') }),
-          eq: () => ({ single: () => ({ data: null, error: new Error('Supabase not configured') }) }),
-          lt: () => ({ data: null, error: new Error('Supabase not configured') }),
-          gte: () => ({ data: null, error: new Error('Supabase not configured') }),
-          lte: () => ({ data: null, error: new Error('Supabase not configured') }),
-          order: () => ({ data: null, error: new Error('Supabase not configured') }),
-          limit: () => ({ data: null, error: new Error('Supabase not configured') }),
-          maybeSingle: () => ({ data: null, error: new Error('Supabase not configured') })
-        })
-      } as any
-    }
-    throw new Error('Missing Supabase service role key. Please check your environment configuration.')
+    // Return a mock client when service role key is missing
+    console.warn('Supabase service role key not found. Server-side operations will be disabled.')
+    return {
+      auth: {
+        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        getUserById: () => Promise.resolve({ data: { user: null }, error: null })
+      },
+      from: () => ({
+        select: () => ({ data: null, error: new Error('Supabase not configured') }),
+        insert: () => ({ data: null, error: new Error('Supabase not configured') }),
+        update: () => ({ data: null, error: new Error('Supabase not configured') }),
+        delete: () => ({ data: null, error: new Error('Supabase not configured') }),
+        eq: () => ({ single: () => ({ data: null, error: new Error('Supabase not configured') }) }),
+        lt: () => ({ data: null, error: new Error('Supabase not configured') }),
+        gte: () => ({ data: null, error: new Error('Supabase not configured') }),
+        lte: () => ({ data: null, error: new Error('Supabase not configured') }),
+        order: () => ({ data: null, error: new Error('Supabase not configured') }),
+        limit: () => ({ data: null, error: new Error('Supabase not configured') }),
+        maybeSingle: () => ({ data: null, error: new Error('Supabase not configured') })
+      })
+    } as any
   }
   
   return createClient<Database>(
