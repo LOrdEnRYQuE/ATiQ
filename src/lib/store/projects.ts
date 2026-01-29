@@ -73,7 +73,7 @@ export const useProjectStore = create<ProjectStore>()(
 
           if (error) throw error
 
-          const projects: Project[] = (data || []).map(item => ({
+          const projects: Project[] = (data || []).map((item: any) => ({
             id: item.id,
             name: item.name,
             files: jsonToRecord(item.files),
