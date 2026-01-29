@@ -17,7 +17,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         return
       }
 
-      const { data: { session } } = await supabase.auth.getSession()
+      // Retry session check a few times to handle race conditions
+      let session = null
+      for (let i = 0; i < 3; i++) {
+        const { data: { session: currentSession } } = await supabase.auth.getSession()
+        if (currentSession) {
+          session = currentSession
+          break
+        }
+        // Wait a bit between retries
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
       
       if (session) {
         setAuthenticated(true)

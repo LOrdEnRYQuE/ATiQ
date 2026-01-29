@@ -11,10 +11,19 @@ export async function GET(request: Request) {
   const next = searchParams.get('next') ?? '/dashboard'
 
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+    if (!error && data.session) {
+      // Create response with auth token cookie
+      const response = NextResponse.redirect(`${origin}${next}`)
+      response.cookies.set('auth-token', data.session.access_token, {
+        path: '/',
+        maxAge: 3600, // 1 hour
+        secure: true,
+        sameSite: 'strict',
+        httpOnly: false // Allow client-side access
+      })
+      return response
     }
   }
 

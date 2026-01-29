@@ -39,14 +39,25 @@ export default function AuthForm() {
         // Show success message for sign up
         setError('Check your email to confirm your account!')
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
         })
         
         if (error) throw error
         
-        router.push('/dashboard')
+        // Wait a moment for session to be established
+        if (data.session) {
+          // Set auth token cookie for middleware
+          document.cookie = `auth-token=${data.session.access_token}; path=/; max-age=3600; secure; samesite=strict`
+          
+          // Small delay to ensure session is persisted
+          await new Promise(resolve => setTimeout(resolve, 500))
+          
+          router.push('/dashboard')
+        } else {
+          setError('Login successful but no session created. Please try again.')
+        }
       }
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'An error occurred')

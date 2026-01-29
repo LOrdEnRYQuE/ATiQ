@@ -4,18 +4,6 @@ import type { Database } from '@/types/database'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Debug: Log environment variables in production
-if (typeof window === 'undefined') {
-  console.log('=== ENVIRONMENT VARIABLES DEBUG ===')
-  console.log('NODE_ENV:', process.env.NODE_ENV)
-  console.log('VERCEL:', process.env.VERCEL)
-  console.log('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'SET' : 'NOT SET')
-  console.log('NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET' : 'NOT SET')
-  console.log('SUPABASE_SERVICE_ROLE_KEY:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'NOT SET')
-  console.log('All env vars:', Object.keys(process.env).filter(key => key.includes('SUPABASE')))
-  console.log('================================')
-}
-
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
   if (typeof window !== 'undefined') {
