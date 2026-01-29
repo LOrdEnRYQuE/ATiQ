@@ -56,6 +56,11 @@ export const useProjectStore = create<ProjectStore>()(
       fetchProjects: async () => {
         set({ loading: true, error: null })
         
+        if (!supabase) {
+          set({ error: 'Database not available', loading: false })
+          return
+        }
+        
         try {
           const { data: { user } } = await supabase.auth.getUser()
           if (!user) throw new Error('User not authenticated')
@@ -92,13 +97,17 @@ export const useProjectStore = create<ProjectStore>()(
       createProject: async (name: string) => {
         set({ loading: true, error: null })
 
+        if (!supabase) {
+          set({ error: 'Database not available', loading: false })
+          throw new Error('Database not available')
+        }
+
         try {
           const { data: { user } } = await supabase.auth.getUser()
           if (!user) throw new Error('User not authenticated')
 
           const newProject: TablesInsert<'projects'> = {
             name,
-            owner_id: user.id,
             user_id: user.id,
             files: {
               'index.js': '// Welcome to your new project\nconsole.log("Hello, World!");',
@@ -142,6 +151,11 @@ export const useProjectStore = create<ProjectStore>()(
       updateProject: async (id: string, updates: Partial<Project>) => {
         set({ loading: true, error: null })
 
+        if (!supabase) {
+          set({ error: 'Database not available', loading: false })
+          throw new Error('Database not available')
+        }
+
         try {
           const { data, error } = await supabase
             .from('projects')
@@ -180,6 +194,11 @@ export const useProjectStore = create<ProjectStore>()(
       deleteProject: async (id: string) => {
         set({ loading: true, error: null })
 
+        if (!supabase) {
+          set({ error: 'Database not available', loading: false })
+          throw new Error('Database not available')
+        }
+
         try {
           const { error } = await supabase
             .from('projects')
@@ -206,6 +225,10 @@ export const useProjectStore = create<ProjectStore>()(
       },
 
       updateProjectFiles: async (projectId: string, files: Record<string, string>) => {
+        if (!supabase) {
+          throw new Error('Database not available')
+        }
+
         try {
           const { error } = await supabase
             .from('projects')

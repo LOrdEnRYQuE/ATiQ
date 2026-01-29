@@ -30,6 +30,11 @@ export default function SubscriptionCard({
   const handleSubscribe = async () => {
     if (!priceId || tier === 'free') return
 
+    if (!supabase) {
+      alert('Authentication service not available')
+      return
+    }
+
     setLoading(true)
     
     try {

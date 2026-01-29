@@ -137,6 +137,15 @@ class Analytics {
 
   private async storeEvent(event: AnalyticsEvent) {
     try {
+      if (!supabase) {
+        console.log('Analytics Event (no supabase):', {
+          ...event,
+          user_id: null,
+          session_id: this.getSessionId()
+        })
+        return
+      }
+
       const { data: { user } } = await supabase.auth.getUser()
       
       // Store in a generic table or log for now
@@ -187,6 +196,11 @@ class Analytics {
       }
 
       // Query actual analytics data from database
+      if (!supabase) {
+        console.error('Supabase not available for analytics')
+        return []
+      }
+
       const { data: aiRequests, error: aiError } = await supabase
         .from('ai_requests')
         .select('*')

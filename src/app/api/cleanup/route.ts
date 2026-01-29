@@ -4,134 +4,51 @@ import { supabaseAdmin } from '@/lib/supabase'
 export const runtime = 'edge'
 export const maxDuration = 300 // 5 minutes
 
-export async function POST(request: NextRequest) {
+export async function POST() {
+  if (!supabaseAdmin) {
+    return NextResponse.json(
+      { error: 'Database not available' },
+      { status: 500 }
+    )
+  }
+
   try {
     const results = {
-      expiredInvitations: 0,
-      oldNotifications: 0,
-      oldAnalytics: 0,
-      expiredApiKeys: 0,
+      oldAiRequests: 0,
       errors: [] as string[]
     }
 
-    // Clean up expired team invitations
+    // Clean up old AI requests (older than 30 days)
     try {
-      const { error: inviteError } = await supabaseAdmin
-        .from('team_invitations')
-        .delete()
-        .lt('expires_at', new Date().toISOString())
-        .is('accepted_at', null)
-
-      if (inviteError) {
-        results.errors.push(`Invitation cleanup: ${inviteError.message}`)
-      } else {
-        const { count } = await supabaseAdmin
-          .from('team_invitations')
-          .select('*', { count: 'exact', head: true })
-          .lt('expires_at', new Date().toISOString())
-          .is('accepted_at', null)
-        
-        results.expiredInvitations = count || 0
-      }
-    } catch (error) {
-      results.errors.push(`Invitation cleanup error: ${error}`)
-    }
-
-    // Clean up old notifications (older than 30 days)
-    try {
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
       
-      const { error: notifError } = await supabaseAdmin
-        .from('notifications')
+      const { error: deleteError } = await supabaseAdmin
+        .from('ai_requests')
         .delete()
         .lt('created_at', thirtyDaysAgo.toISOString())
 
-      if (notifError) {
-        results.errors.push(`Notification cleanup: ${notifError.message}`)
+      if (deleteError) {
+        results.errors.push(`AI requests cleanup: ${deleteError.message}`)
       } else {
-        const { count } = await supabaseAdmin
-          .from('notifications')
-          .select('*', { count: 'exact', head: true })
-          .lt('created_at', thirtyDaysAgo.toISOString())
-        
-        results.oldNotifications = count || 0
+        results.oldAiRequests = 1
       }
     } catch (error) {
-      results.errors.push(`Notification cleanup error: ${error}`)
-    }
-
-    // Clean up old analytics data (older than 90 days)
-    try {
-      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-      
-      const { error: analyticsError } = await supabaseAdmin
-        .from('usage_analytics')
-        .delete()
-        .lt('created_at', ninetyDaysAgo.toISOString())
-
-      if (analyticsError) {
-        results.errors.push(`Analytics cleanup: ${analyticsError.message}`)
-      } else {
-        const { count } = await supabaseAdmin
-          .from('usage_analytics')
-          .select('*', { count: 'exact', head: true })
-          .lt('created_at', ninetyDaysAgo.toISOString())
-        
-        results.oldAnalytics = count || 0
-      }
-    } catch (error) {
-      results.errors.push(`Analytics cleanup error: ${error}`)
-    }
-
-    // Clean up expired API keys
-    try {
-      const { error: apiKeyError } = await supabaseAdmin
-        .from('api_keys')
-        .delete()
-        .lt('expires_at', new Date().toISOString())
-
-      if (apiKeyError) {
-        results.errors.push(`API key cleanup: ${apiKeyError.message}`)
-      } else {
-        const { count } = await supabaseAdmin
-          .from('api_keys')
-          .select('*', { count: 'exact', head: true })
-          .lt('expires_at', new Date().toISOString())
-        
-        results.expiredApiKeys = count || 0
-      }
-    } catch (error) {
-      results.errors.push(`API key cleanup error: ${error}`)
-    }
-
-    // Update project last_activity_at for active projects
-    try {
-      const { error: activityError } = await supabaseAdmin
-        .from('projects')
-        .update({ last_activity_at: new Date().toISOString() })
-        .eq('status', 'active')
-        .lt('last_activity_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-
-      if (activityError) {
-        results.errors.push(`Activity update error: ${activityError.message}`)
-      }
-    } catch (error) {
-      results.errors.push(`Activity update error: ${error}`)
+      results.errors.push(`AI requests cleanup: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
 
     return NextResponse.json({
       success: true,
-      timestamp: new Date().toISOString(),
-      results
+      results,
+      timestamp: new Date().toISOString()
     })
 
   } catch (error) {
-    console.error('Cleanup job error:', error)
+    console.error('Cleanup error:', error)
     return NextResponse.json(
-      {
-        success: false,
-        error: 'Internal server error',
-        timestamp: new Date().toISOString()
+      { 
+        error: 'Cleanup failed',
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
       },
       { status: 500 }
     )
@@ -149,5 +66,5 @@ export async function GET(request: NextRequest) {
     )
   }
 
-  return POST(request)
+  return POST()
 }

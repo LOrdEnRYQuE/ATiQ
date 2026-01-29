@@ -13,6 +13,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Stripe is not configured' }, { status: 500 })
   }
 
+  if (!supabase) {
+    return NextResponse.json({ error: 'Database not available' }, { status: 500 })
+  }
+
   try {
     const body = await req.text()
     const signature = (await headers()).get('stripe-signature')

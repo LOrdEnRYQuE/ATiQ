@@ -2,6 +2,17 @@ import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
 export async function GET() {
+  if (!supabase) {
+    return NextResponse.json(
+      { 
+        status: 'error', 
+        message: 'Database not available',
+        error: 'Supabase client not initialized'
+      },
+      { status: 500 }
+    )
+  }
+
   try {
     // Test database connection
     const { error } = await supabase

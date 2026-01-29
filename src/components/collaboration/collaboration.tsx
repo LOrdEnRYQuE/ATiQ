@@ -53,6 +53,11 @@ export default function Collaboration({ projectId, onProjectUpdate }: Collaborat
   }, [projectId])
 
   const fetchProjectDetails = async () => {
+    if (!supabase) {
+      console.error('Supabase not available')
+      return
+    }
+
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -83,6 +88,11 @@ export default function Collaboration({ projectId, onProjectUpdate }: Collaborat
   }
 
   const fetchTeamMembers = async () => {
+    if (!supabase) {
+      console.error('Supabase not available')
+      return
+    }
+
     try {
       // For now, get basic project info without collaboration features
       // TODO: Implement full collaboration after database migration

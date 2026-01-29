@@ -18,6 +18,12 @@ export default function AuthForm() {
     setLoading(true)
     setError(null)
 
+    if (!supabase) {
+      setError('Authentication service not available')
+      setLoading(false)
+      return
+    }
+
     try {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({
@@ -52,6 +58,12 @@ export default function AuthForm() {
   const handleGoogleAuth = async () => {
     setLoading(true)
     setError(null)
+
+    if (!supabase) {
+      setError('Authentication service not available')
+      setLoading(false)
+      return
+    }
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({

@@ -63,6 +63,11 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
       fetchUserSubscription: async () => {
         set({ loading: true, error: null })
         
+        if (!supabase) {
+          set({ error: 'Database not available', loading: false })
+          return
+        }
+        
         try {
           const { data: { user } } = await supabase.auth.getUser()
           if (!user) throw new Error('User not authenticated')

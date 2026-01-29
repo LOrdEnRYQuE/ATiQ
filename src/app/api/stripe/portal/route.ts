@@ -3,6 +3,13 @@ import { createPortalSession } from '@/lib/stripe'
 import { supabase } from '@/lib/supabase'
 
 export async function POST(req: NextRequest) {
+  if (!supabase) {
+    return NextResponse.json(
+      { error: 'Database not available' },
+      { status: 500 }
+    )
+  }
+
   try {
     const { customerId, returnUrl } = await req.json()
 
