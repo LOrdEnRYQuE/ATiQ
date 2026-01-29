@@ -18,7 +18,13 @@ export default function AuthForm() {
     setLoading(true)
     setError(null)
 
+    console.log('🔍 DEBUG: Starting authentication process')
+    console.log('🔍 DEBUG: Supabase client available:', !!supabase)
+    console.log('🔍 DEBUG: Email:', email)
+    console.log('🔍 DEBUG: Is sign up:', isSignUp)
+
     if (!supabase) {
+      console.error('🔍 DEBUG: Supabase client not available')
       setError('Authentication service not available')
       setLoading(false)
       return
@@ -26,6 +32,7 @@ export default function AuthForm() {
 
     try {
       if (isSignUp) {
+        console.log('🔍 DEBUG: Attempting sign up')
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -34,35 +41,53 @@ export default function AuthForm() {
           }
         })
         
+        console.log('🔍 DEBUG: Sign up result:', { error })
+        
         if (error) throw error
         
         // Show success message for sign up
         setError('Check your email to confirm your account!')
       } else {
+        console.log('🔍 DEBUG: Attempting sign in with password')
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
+        })
+        
+        console.log('🔍 DEBUG: Sign in result:', { 
+          error, 
+          hasData: !!data,
+          hasSession: !!data?.session,
+          hasUser: !!data?.user,
+          sessionExpiresAt: data?.session?.expires_at
         })
         
         if (error) throw error
         
         // Wait a moment for session to be established
         if (data.session) {
+          console.log('🔍 DEBUG: Session established, setting auth token cookie')
           // Set auth token cookie for middleware
           document.cookie = `auth-token=${data.session.access_token}; path=/; max-age=3600; secure; samesite=strict`
+          console.log('🔍 DEBUG: Auth token cookie set')
           
           // Small delay to ensure session is persisted
+          console.log('🔍 DEBUG: Waiting 500ms for session persistence')
           await new Promise(resolve => setTimeout(resolve, 500))
           
+          console.log('🔍 DEBUG: Redirecting to dashboard')
           router.push('/dashboard')
         } else {
+          console.error('🔍 DEBUG: No session created after successful login')
           setError('Login successful but no session created. Please try again.')
         }
       }
     } catch (error: unknown) {
+      console.error('🔍 DEBUG: Authentication error:', error)
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
+      console.log('🔍 DEBUG: Authentication process completed')
     }
   }
 
