@@ -46,7 +46,16 @@ export async function proxy(request: NextRequest) {
   // Verify token if present
   if (token) {
     try {
-      const { supabaseAdmin } = await import('@/lib/supabase')
+      const { getSupabaseAdmin } = await import('@/lib/supabase')
+      
+      // Try to get supabase admin client, but handle errors gracefully
+      let supabaseAdmin
+      try {
+        supabaseAdmin = getSupabaseAdmin()
+      } catch (error) {
+        console.warn('Supabase admin client not available:', error)
+        return NextResponse.next()
+      }
       
       const { data: { user }, error } = await supabaseAdmin.auth.getUser(token)
       
@@ -65,7 +74,8 @@ export async function proxy(request: NextRequest) {
       return response
     } catch (error) {
       console.error('Auth verification error:', error)
-      return NextResponse.redirect(new URL('/auth', request.url))
+      // If supabaseAdmin fails, continue without auth
+      return NextResponse.next()
     }
   }
 

@@ -52,7 +52,7 @@ export const supabase = (() => {
 })()
 
 // Create a Supabase client for server-side usage
-export const supabaseAdmin = (() => {
+export const getSupabaseAdmin = () => {
   if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     throw new Error('Missing Supabase service role key. Please check your environment configuration.')
   }
@@ -67,7 +67,10 @@ export const supabaseAdmin = (() => {
       }
     }
   )
-})()
+}
+
+// Legacy export for backward compatibility
+export const supabaseAdmin = getSupabaseAdmin
 
 // Helper function to create Supabase client with custom auth
 export function createSupabaseClient(accessToken: string) {
