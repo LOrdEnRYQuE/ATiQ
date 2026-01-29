@@ -17,16 +17,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = (() => {
   if (!supabaseUrl || !supabaseAnonKey) {
-    // Return a mock client during build to prevent failures
-    if (typeof window === 'undefined') {
-      console.warn('Supabase environment variables not found. Returning mock client for build.')
+    // Return a mock client for browser when env vars are missing
+    if (typeof window !== 'undefined') {
+      console.warn('Supabase environment variables not found. Authentication features will be disabled.')
       return {
         auth: {
           getUser: () => Promise.resolve({ data: { user: null }, error: null }),
           getSession: () => Promise.resolve({ data: { session: null }, error: null }),
           signInWithOAuth: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured') }),
           signUp: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured') }),
-          signOut: () => Promise.resolve({ error: null })
+          signOut: () => Promise.resolve({ error: null }),
+          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
         },
         from: () => ({
           select: () => ({ data: null, error: new Error('Supabase not configured') }),
@@ -43,7 +44,30 @@ export const supabase = (() => {
         })
       } as any
     }
-    throw new Error('Missing Supabase environment variables. Please check your environment configuration.')
+    // For server-side build, return mock to prevent failures
+    console.warn('Supabase environment variables not found. Returning mock client for build.')
+    return {
+      auth: {
+        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+        signInWithOAuth: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured') }),
+        signUp: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured') }),
+        signOut: () => Promise.resolve({ error: null })
+      },
+      from: () => ({
+        select: () => ({ data: null, error: new Error('Supabase not configured') }),
+        insert: () => ({ data: null, error: new Error('Supabase not configured') }),
+        update: () => ({ data: null, error: new Error('Supabase not configured') }),
+        delete: () => ({ data: null, error: new Error('Supabase not configured') }),
+        eq: () => ({ single: () => ({ data: null, error: new Error('Supabase not configured') }) }),
+        lt: () => ({ data: null, error: new Error('Supabase not configured') }),
+        gte: () => ({ data: null, error: new Error('Supabase not configured') }),
+        lte: () => ({ data: null, error: new Error('Supabase not configured') }),
+        order: () => ({ data: null, error: new Error('Supabase not configured') }),
+        limit: () => ({ data: null, error: new Error('Supabase not configured') }),
+        maybeSingle: () => ({ data: null, error: new Error('Supabase not configured') })
+      })
+    } as any
   }
   
   return createClient<Database>(supabaseUrl, supabaseAnonKey, {
