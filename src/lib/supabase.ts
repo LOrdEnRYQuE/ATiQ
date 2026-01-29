@@ -4,6 +4,13 @@ import type { Database } from '@/types/database'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+// Debug: Log environment variables (only in development)
+if (typeof window === 'undefined' && process.env.NODE_ENV === 'development') {
+  console.log('Supabase URL:', supabaseUrl ? 'SET' : 'NOT SET')
+  console.log('Supabase Anon Key:', supabaseAnonKey ? 'SET' : 'NOT SET')
+  console.log('Service Role Key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'NOT SET')
+}
+
 // Validate environment variables
 if (!supabaseUrl || !supabaseAnonKey) {
   if (typeof window !== 'undefined') {
@@ -17,59 +24,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = (() => {
   if (!supabaseUrl || !supabaseAnonKey) {
-    // Return a mock client for browser when env vars are missing
-    if (typeof window !== 'undefined') {
-      console.warn('Supabase environment variables not found. Authentication features will be disabled.')
-      return {
-        auth: {
-          getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-          getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-          signInWithOAuth: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured - OAuth not available') }),
-          signUp: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured - Sign up not available') }),
-          signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured - Sign in not available') }),
-          signOut: () => Promise.resolve({ error: null }),
-          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
-        },
-        from: () => ({
-          select: () => ({ data: null, error: new Error('Supabase not configured') }),
-          insert: () => ({ data: null, error: new Error('Supabase not configured') }),
-          update: () => ({ data: null, error: new Error('Supabase not configured') }),
-          delete: () => ({ data: null, error: new Error('Supabase not configured') }),
-          eq: () => ({ single: () => ({ data: null, error: new Error('Supabase not configured') }) }),
-          lt: () => ({ data: null, error: new Error('Supabase not configured') }),
-          gte: () => ({ data: null, error: new Error('Supabase not configured') }),
-          lte: () => ({ data: null, error: new Error('Supabase not configured') }),
-          order: () => ({ data: null, error: new Error('Supabase not configured') }),
-          limit: () => ({ data: null, error: new Error('Supabase not configured') }),
-          maybeSingle: () => ({ data: null, error: new Error('Supabase not configured') })
-        })
-      } as any
-    }
-    // For server-side build, return mock to prevent failures
-    console.warn('Supabase environment variables not found. Returning mock client for build.')
-    return {
-      auth: {
-        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-        getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-        signInWithOAuth: () => Promise.resolve({ data: {}, error: new Error('Supabase not configured') }),
-        signUp: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured') }),
-        signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: new Error('Supabase not configured') }),
-        signOut: () => Promise.resolve({ error: null })
-      },
-      from: () => ({
-        select: () => ({ data: null, error: new Error('Supabase not configured') }),
-        insert: () => ({ data: null, error: new Error('Supabase not configured') }),
-        update: () => ({ data: null, error: new Error('Supabase not configured') }),
-        delete: () => ({ data: null, error: new Error('Supabase not configured') }),
-        eq: () => ({ single: () => ({ data: null, error: new Error('Supabase not configured') }) }),
-        lt: () => ({ data: null, error: new Error('Supabase not configured') }),
-        gte: () => ({ data: null, error: new Error('Supabase not configured') }),
-        lte: () => ({ data: null, error: new Error('Supabase not configured') }),
-        order: () => ({ data: null, error: new Error('Supabase not configured') }),
-        limit: () => ({ data: null, error: new Error('Supabase not configured') }),
-        maybeSingle: () => ({ data: null, error: new Error('Supabase not configured') })
-      })
-    } as any
+    throw new Error('Missing Supabase environment variables. Please check your environment configuration.')
   }
   
   return createClient<Database>(supabaseUrl, supabaseAnonKey, {
@@ -94,27 +49,7 @@ export const supabase = (() => {
 // Create a Supabase client for server-side usage
 export const supabaseAdmin = (() => {
   if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    // Return a mock client when service role key is missing
-    console.warn('Supabase service role key not found. Server-side operations will be disabled.')
-    return {
-      auth: {
-        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
-        getUserById: () => Promise.resolve({ data: { user: null }, error: null })
-      },
-      from: () => ({
-        select: () => ({ data: null, error: new Error('Supabase not configured') }),
-        insert: () => ({ data: null, error: new Error('Supabase not configured') }),
-        update: () => ({ data: null, error: new Error('Supabase not configured') }),
-        delete: () => ({ data: null, error: new Error('Supabase not configured') }),
-        eq: () => ({ single: () => ({ data: null, error: new Error('Supabase not configured') }) }),
-        lt: () => ({ data: null, error: new Error('Supabase not configured') }),
-        gte: () => ({ data: null, error: new Error('Supabase not configured') }),
-        lte: () => ({ data: null, error: new Error('Supabase not configured') }),
-        order: () => ({ data: null, error: new Error('Supabase not configured') }),
-        limit: () => ({ data: null, error: new Error('Supabase not configured') }),
-        maybeSingle: () => ({ data: null, error: new Error('Supabase not configured') })
-      })
-    } as any
+    throw new Error('Missing Supabase service role key. Please check your environment configuration.')
   }
   
   return createClient<Database>(
