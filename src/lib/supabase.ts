@@ -8,8 +8,8 @@ const FALLBACK_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_ANON_KEY
 
-console.log('🔥 Supabase URL:', supabaseUrl ? 'SET' : 'NOT SET')
-console.log('🔥 Supabase Key:', supabaseAnonKey ? 'SET' : 'NOT SET')
+// console.log('🔥 Supabase URL:', supabaseUrl ? 'SET' : 'NOT SET')
+// console.log('🔥 Supabase Key:', supabaseAnonKey ? 'SET' : 'NOT SET')
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
@@ -30,7 +30,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 })
 
 // Test connection in development
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development' && false) {
   supabase.auth.getSession().then(({ data, error }) => {
     console.log('🔥 Supabase connection test:', { 
       hasSession: !!data.session, 

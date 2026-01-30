@@ -133,6 +133,7 @@ export function OrbitRotation({
                         left: `${x}%`,
                         top: `${y}%`,
                         transform: "translate(-50%, -50%)",
+                        animation: `counter-spin ${animationDuration} linear infinite`,
                       }}
                     >
                       <iconConfig.Icon className={cn(iconSizeClasses[size])} />

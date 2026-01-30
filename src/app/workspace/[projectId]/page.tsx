@@ -1,10 +1,11 @@
 import AuthGuard from '@/components/auth/auth-guard'
 import WorkspaceLayout from '@/components/workspace/workspace-layout'
 
-export default function WorkspacePage({ params }: { params: { projectId: string } }) {
+export default async function WorkspacePage({ params }: { params: Promise<{ projectId: string }> }) {
+  const { projectId } = await params
   return (
     <AuthGuard>
-      <WorkspaceLayout projectId={params.projectId} />
+      <WorkspaceLayout projectId={projectId} />
     </AuthGuard>
   )
 }

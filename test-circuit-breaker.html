@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Breaker Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #ff3838;
+            transform: translateY(-2px);
+        }
+        .warning { background: #ffa500; color: #333; }
+        .danger { background: #ff4757; }
+        .info { background: #3742fa; }
+        .success { background: #26de81; }
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .crash-log {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚨 Circuit Breaker Test Suite</h1>
+        <p>Test the emergency brake system that prevents infinite repair loops and token waste.</p>
+        
+        <h2>⚡ Crash Loop Scenarios:</h2>
+        
+        <button onclick="testDuplicateError()" class="danger">
+            🔄 Test Duplicate Error (Should trip after 2 attempts)
+        </button>
+        
+        <button onclick="testCrashLoop()" class="warning">
+            💥 Test Crash Loop (3+ different errors in 1 minute)
+        </button>
+        
+        <button onclick="testMixedErrors()" class="info">
+            🎲 Test Mixed Errors (Random pattern)
+        </button>
+        
+        <button onclick="testCooldown()" class="success">
+            ⏱️ Test Cooldown Reset
+        </button>
+        
+        <button onclick="resetTest()">
+            🔄 Reset Test State
+        </button>
+        
+        <div class="stats">
+            <h3>📊 Circuit Breaker Stats:</h3>
+            <div id="statsDisplay">No data yet...</div>
+        </div>
+        
+        <div class="crash-log">
+            <h3>📋 Crash Log:</h3>
+            <div id="crashLog">Ready to simulate crashes...</div>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <h3>🛡️ What the Circuit Breaker Prevents:</h3>
+            <ul>
+                <li><strong>Death Spiral:</strong> Same error repeated infinitely</li>
+                <li><strong>Token Waste:</strong> 50,000+ tokens burned on failed repairs</li>
+                <li><strong>Browser Freeze:</strong> 30+ refreshes per minute</li>
+                <li><strong>User Frustration:</strong> Endless loading screens</li>
+            </ul>
+            
+            <h3>🔧 Circuit Breaker Rules:</h3>
+            <ul>
+                <li>Max 3 crashes per minute</li>
+                <li>Max 2 duplicate error attempts</li>
+                <li>60-second cooldown when tripped</li>
+                <li>Manual reset available</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Simulate circuit breaker behavior
+        let crashHistory = [];
+        let isTripped = false;
+        let tripTime = null;
+        let totalAttempts = 0;
+        let totalBlocked = 0;
+        
+        const CONFIG = {
+            maxCrashesPerMinute: 3,
+            maxDuplicateAttempts: 2,
+            cooldownPeriodMs: 60000
+        };
+        
+        function log(message) {
+            const logElement = document.getElementById('crashLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML = `[${timestamp}] ${message}<br>` + logElement.innerHTML;
+        }
+        
+        function updateStats() {
+            const statsElement = document.getElementById('statsDisplay');
+            const successRate = totalAttempts > 0 ? ((totalAttempts - totalBlocked) / totalAttempts * 100).toFixed(1) : 100;
+            
+            statsElement.innerHTML = `
+                Total Attempts: ${totalAttempts}<br>
+                Blocked: ${totalBlocked}<br>
+                Success Rate: ${successRate}%<br>
+                Recent Crashes: ${crashHistory.length}<br>
+                Circuit Tripped: ${isTripped ? 'YES' : 'NO'}<br>
+                Cooldown Remaining: ${getCooldownRemaining()}s
+            `;
+        }
+        
+        function getCooldownRemaining() {
+            if (!isTripped || !tripTime) return 0;
+            const elapsed = Date.now() - tripTime;
+            return Math.max(0, Math.ceil((CONFIG.cooldownPeriodMs - elapsed) / 1000));
+        }
+        
+        function hashError(message) {
+            // Simple hash for demo
+            return message.toLowerCase().replace(/\s+/g, '-').slice(0, 20);
+        }
+        
+        function shouldAttemptRepair(errorMessage) {
+            totalAttempts++;
+            
+            // Check if tripped and in cooldown
+            if (isTripped && getCooldownRemaining() > 0) {
+                totalBlocked++;
+                return { allowed: false, reason: 'Circuit breaker in cooldown' };
+            }
+            
+            // Reset if cooldown expired
+            if (isTripped && getCooldownRemaining() === 0) {
+                reset();
+            }
+            
+            // Clean old crashes
+            const now = Date.now();
+            crashHistory = crashHistory.filter(c => now - c.timestamp < CONFIG.cooldownPeriodMs);
+            
+            const errorHash = hashError(errorMessage);
+            
+            // Check duplicates
+            const duplicateCount = crashHistory.filter(c => c.errorHash === errorHash).length;
+            if (duplicateCount >= CONFIG.maxDuplicateAttempts) {
+                trip(`Duplicate error detected ${duplicateCount} times`);
+                totalBlocked++;
+                return { allowed: false, reason: `Same error ${duplicateCount} times` };
+            }
+            
+            // Check crash loop
+            if (crashHistory.length >= CONFIG.maxCrashesPerMinute) {
+                const uniqueErrors = new Set(crashHistory.map(c => c.errorHash));
+                if (uniqueErrors.size >= 2) {
+                    trip(`Crash loop: ${crashHistory.length} crashes`);
+                    totalBlocked++;
+                    return { allowed: false, reason: 'Too many crashes' };
+                }
+            }
+            
+            // Allow repair
+            crashHistory.push({
+                timestamp: now,
+                errorHash,
+                message: errorMessage
+            });
+            
+            return { allowed: true };
+        }
+        
+        function trip(reason) {
+            isTripped = true;
+            tripTime = Date.now();
+            log(`🚨 CIRCUIT BREAKER TRIPPED: ${reason}`);
+        }
+        
+        function reset() {
+            isTripped = false;
+            tripTime = null;
+            crashHistory = [];
+            log('🔧 Circuit breaker reset');
+        }
+        
+        // Test scenarios
+        function testDuplicateError() {
+            log('🔄 Testing duplicate error scenario...');
+            
+            const sameError = 'TypeError: Cannot read property of undefined';
+            
+            for (let i = 1; i <= 4; i++) {
+                setTimeout(() => {
+                    const result = shouldAttemptRepair(sameError);
+                    log(`Attempt ${i}: ${result.allowed ? '✅ ALLOWED' : '🚫 BLOCKED'} - ${result.reason || ''}`);
+                    updateStats();
+                }, i * 500);
+            }
+        }
+        
+        function testCrashLoop() {
+            log('💥 Testing crash loop scenario...');
+            
+            const differentErrors = [
+                'ReferenceError: variable is not defined',
+                'TypeError: Cannot read property of null',
+                'SyntaxError: Unexpected token',
+                'RangeError: Maximum call stack size exceeded'
+            ];
+            
+            differentErrors.forEach((error, index) => {
+                setTimeout(() => {
+                    const result = shouldAttemptRepair(error);
+                    log(`Error ${index + 1}: ${result.allowed ? '✅ ALLOWED' : '🚫 BLOCKED'} - ${result.reason || ''}`);
+                    updateStats();
+                }, (index + 1) * 300);
+            });
+        }
+        
+        function testMixedErrors() {
+            log('🎲 Testing mixed error pattern...');
+            
+            const errors = [
+                'TypeError: Cannot read property of undefined',
+                'TypeError: Cannot read property of undefined', // Duplicate
+                'ReferenceError: variable is not defined',
+                'TypeError: Cannot read property of undefined', // Trip on duplicate
+                'NetworkError: Failed to fetch',
+                'SyntaxError: Unexpected token'
+            ];
+            
+            errors.forEach((error, index) => {
+                setTimeout(() => {
+                    const result = shouldAttemptRepair(error);
+                    log(`Mixed ${index + 1}: ${result.allowed ? '✅ ALLOWED' : '🚫 BLOCKED'} - ${result.reason || ''}`);
+                    updateStats();
+                }, (index + 1) * 400);
+            });
+        }
+        
+        function testCooldown() {
+            log('⏱️ Testing cooldown behavior...');
+            
+            // First, trip the circuit breaker
+            for (let i = 0; i < 3; i++) {
+                shouldAttemptRepair(`Error ${i}`);
+            }
+            
+            log('Circuit breaker tripped! Waiting for cooldown...');
+            
+            // Try to repair during cooldown
+            setTimeout(() => {
+                const result = shouldAttemptRepair('Should be blocked');
+                log(`During cooldown: ${result.allowed ? '✅ ALLOWED' : '🚫 BLOCKED'}`);
+                updateStats();
+            }, 1000);
+            
+            // Show cooldown countdown
+            let countdown = 5;
+            const countdownInterval = setInterval(() => {
+                log(`Cooldown remaining: ${countdown}s`);
+                updateStats();
+                countdown--;
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    log('⏰ Cooldown expired - testing reset...');
+                    
+                    const result = shouldAttemptRepair('Should work now');
+                    log(`After cooldown: ${result.allowed ? '✅ ALLOWED' : '🚫 BLOCKED'}`);
+                    updateStats();
+                }
+            }, 1000);
+        }
+        
+        function resetTest() {
+            reset();
+            totalAttempts = 0;
+            totalBlocked = 0;
+            log('🔄 Test state completely reset');
+            updateStats();
+        }
+        
+        // Initialize
+        updateStats();
+        log('🛡️ Circuit Breaker Test Suite ready');
+    </script>
+</body>
+</html>

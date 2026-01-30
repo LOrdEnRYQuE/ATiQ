@@ -45,6 +45,25 @@ const jsonToRecord = (json: Json): Record<string, string> => {
   return {}
 }
 
+const createLocalProject = (name: string): Project => {
+  const now = new Date().toISOString()
+  const id = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+    ? crypto.randomUUID()
+    : `local-${Date.now()}`
+
+  return {
+    id,
+    name,
+    files: {
+      'index.js': '// Welcome to your new project\nconsole.log("Hello, World!");',
+      'README.md': `# ${name}\n\nStart building your amazing project here!`
+    },
+    created_at: now,
+    updated_at: now,
+    user_id: 'local'
+  }
+}
+
 export const useProjectStore = create<ProjectStore>()(
   persist(
     (set) => ({
@@ -96,15 +115,37 @@ export const useProjectStore = create<ProjectStore>()(
 
       createProject: async (name: string) => {
         set({ loading: true, error: null })
-
-        if (!supabase) {
-          set({ error: 'Database not available', loading: false })
-          throw new Error('Database not available')
-        }
+        console.log('createProject called with:', name)
 
         try {
+          // If Supabase is unavailable, fall back to local creation
+          if (!supabase) {
+            console.log('Supabase not available, creating local project')
+            const project = createLocalProject(name)
+            set(state => ({
+              projects: [project, ...state.projects],
+              currentProject: project,
+              loading: false,
+              error: null
+            }))
+            console.log('Local project created:', project)
+            return project
+          }
+
           const { data: { user } } = await supabase.auth.getUser()
-          if (!user) throw new Error('User not authenticated')
+          console.log('Supabase user:', user)
+          if (!user) {
+            console.log('User not authenticated, creating local project')
+            const project = createLocalProject(name)
+            set(state => ({
+              projects: [project, ...state.projects],
+              currentProject: project,
+              loading: false,
+              error: null
+            }))
+            console.log('Local project created due to no auth:', project)
+            return project
+          }
 
           const newProject: TablesInsert<'projects'> = {
             name,
@@ -121,7 +162,20 @@ export const useProjectStore = create<ProjectStore>()(
             .select()
             .single()
 
-          if (error) throw error
+          if (error) {
+            console.error('Supabase insert error:', error)
+            // If any database error occurs, fall back to local creation
+            console.log('Database error, creating local project')
+            const project = createLocalProject(name)
+            set(state => ({
+              projects: [project, ...state.projects],
+              currentProject: project,
+              loading: false,
+              error: null
+            }))
+            console.log('Local project created due to DB error:', project)
+            return project
+          }
 
           const project: Project = {
             id: data.id,

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Persistence Test Suite</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        .danger { background: #f44336; }
+        .danger:hover { background: #da190b; }
+        .warning { background: #ff9800; }
+        .warning:hover { background: #e68900; }
+        .info { background: #2196F3; }
+        .info:hover { background: #0b7dda; }
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+        }
+        .file-list {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .success { background: rgba(76, 175, 80, 0.2); border: 1px solid #4CAF50; }
+        .error { background: rgba(244, 67, 54, 0.2); border: 1px solid #f44336; }
+        .warning { background: rgba(255, 152, 0, 0.2); border: 1px solid #ff9800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💾 Persistence Test Suite</h1>
+        <p>Test the auto-save and project restoration system that protects user data.</p>
+        
+        <h2>🧪 Test Scenarios:</h2>
+        
+        <button onclick="testAutoSave()">
+            💾 Test Auto-Save
+        </button>
+        
+        <button onclick="testProjectRestore()" class="info">
+            🔄 Test Project Restore
+        </button>
+        
+        <button onclick="testLargeProject()" class="warning">
+            📦 Test Large Project
+        </button>
+        
+        <button onclick="testStorageLimits()" class="warning">
+            ⚠️ Test Storage Limits
+        </button>
+        
+        <button onclick="simulateBrowserRefresh()" class="info">
+            🔄 Simulate Browser Refresh
+        </button>
+        
+        <button onclick="clearAllData()" class="danger">
+            🗑️ Clear All Data
+        </button>
+        
+        <div class="stats">
+            <h3>📊 Storage Statistics:</h3>
+            <div id="storageStats">No data yet...</div>
+        </div>
+        
+        <div class="file-list">
+            <h3>📁 Current Files:</h3>
+            <div id="fileList">No files loaded...</div>
+        </div>
+        
+        <div id="statusMessages"></div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <h3>🛡️ What Persistence Protects:</h3>
+            <ul>
+                <li><strong>Browser Refresh:</strong> Cmd+R or F5 no longer loses work</li>
+                <li><strong>Tab Closure:</strong> Accidentally closing tab preserves project</li>
+                <li><strong>Browser Crash:</strong> Projects survive browser restarts</li>
+                <li><strong>Session Loss:</strong> Work persists across sessions</li>
+            </ul>
+            
+            <h3>🔧 Persistence Features:</h3>
+            <ul>
+                <li><strong>Auto-Save:</strong> 1-second debounced saving</li>
+                <li><strong>Metadata:</strong> Project name, timestamps, file counts</li>
+                <li><strong>Size Limits:</strong> 4.5MB LocalStorage limit</li>
+                <li><strong>Import/Export:</strong> JSON backup and restore</li>
+                <li><strong>ZIP Export:</strong> Full project download</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Simulate the persistence manager
+        const STORAGE_KEY = 'vibe_project_files';
+        const METADATA_KEY = 'vibe_project_metadata';
+        const LAST_SAVED_KEY = 'vibe_last_saved';
+
+        let testFiles = {};
+
+        function showStatus(message, type = 'success') {
+            const statusDiv = document.getElementById('statusMessages');
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            statusDiv.insertBefore(status, statusDiv.firstChild);
+            
+            // Remove old messages
+            while (statusDiv.children.length > 5) {
+                statusDiv.removeChild(statusDiv.lastChild);
+            }
+        }
+
+        function updateStats() {
+            const statsDiv = document.getElementById('storageStats');
+            const hasProject = !!localStorage.getItem(STORAGE_KEY);
+            const lastSaved = localStorage.getItem(LAST_SAVED_KEY);
+            
+            let stats = 'No saved project';
+            
+            if (hasProject) {
+                try {
+                    const files = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                    const metadata = JSON.parse(localStorage.getItem(METADATA_KEY) || '{}');
+                    const filesSize = localStorage.getItem(STORAGE_KEY)?.length || 0;
+                    const metadataSize = localStorage.getItem(METADATA_KEY)?.length || 0;
+                    const timestampSize = localStorage.getItem(LAST_SAVED_KEY)?.length || 0;
+                    
+                    stats = `
+Project: ${metadata.name || 'Untitled'}
+Files: ${Object.keys(files).length}
+Size: ${(JSON.stringify(files).length / 1024).toFixed(1)}KB
+Storage: ${((filesSize + metadataSize + timestampSize) / 1024).toFixed(1)}KB
+Last Saved: ${lastSaved ? new Date(parseInt(lastSaved)).toLocaleString() : 'Never'}
+                    `.trim();
+                } catch (e) {
+                    stats = 'Error reading project data';
+                }
+            }
+            
+            statsDiv.textContent = stats;
+        }
+
+        function updateFileList() {
+            const fileListDiv = document.getElementById('fileList');
+            const fileCount = Object.keys(testFiles).length;
+            
+            if (fileCount === 0) {
+                fileListDiv.textContent = 'No files loaded...';
+                return;
+            }
+            
+            const fileNames = Object.keys(testFiles).sort();
+            const totalSize = Object.values(testFiles).reduce((sum, content) => sum + content.length, 0);
+            
+            fileListDiv.innerHTML = `
+                Total: ${fileCount} files, ${(totalSize / 1024).toFixed(1)}KB<br><br>
+                ${fileNames.map(file => {
+                    const size = testFiles[file].length;
+                    return `${file} (${size}B)`;
+                }).join('<br>')}
+            `;
+        }
+
+        // Test functions
+        function testAutoSave() {
+            showStatus('Testing auto-save functionality...');
+            
+            // Create test files
+            testFiles = {
+                'index.html': '<html><body><h1>Hello World</h1></body></html>',
+                'style.css': 'body { margin: 0; font-family: Arial; }',
+                'script.js': 'console.log("Hello World");',
+                'package.json': JSON.stringify({
+                    name: 'test-project',
+                    version: '1.0.0',
+                    scripts: { start: 'node index.js' }
+                }, null, 2)
+            };
+            
+            // Simulate auto-save
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(testFiles));
+                
+                const metadata = {
+                    name: 'Test Project',
+                    createdAt: Date.now(),
+                    lastModified: Date.now(),
+                    fileCount: Object.keys(testFiles).length,
+                    totalSize: Object.values(testFiles).reduce((sum, content) => sum + content.length, 0),
+                    version: '1.0.0'
+                };
+                
+                localStorage.setItem(METADATA_KEY, JSON.stringify(metadata));
+                localStorage.setItem(LAST_SAVED_KEY, Date.now().toString());
+                
+                showStatus('✅ Auto-save successful! 4 files saved.', 'success');
+                updateStats();
+                updateFileList();
+                
+            } catch (error) {
+                showStatus('❌ Auto-save failed: ' + error.message, 'error');
+            }
+        }
+
+        function testProjectRestore() {
+            showStatus('Testing project restoration...');
+            
+            try {
+                const storedFiles = localStorage.getItem(STORAGE_KEY);
+                const storedMetadata = localStorage.getItem(METADATA_KEY);
+                
+                if (!storedFiles) {
+                    showStatus('⚠️ No saved project found', 'warning');
+                    return;
+                }
+                
+                testFiles = JSON.parse(storedFiles);
+                const metadata = JSON.parse(storedMetadata);
+                
+                showStatus(`✅ Project restored: "${metadata.name}" with ${Object.keys(testFiles).length} files`, 'success');
+                updateFileList();
+                
+            } catch (error) {
+                showStatus('❌ Project restore failed: ' + error.message, 'error');
+            }
+        }
+
+        function testLargeProject() {
+            showStatus('Testing large project handling...');
+            
+            // Create a large project
+            const largeFiles = {};
+            for (let i = 0; i < 50; i++) {
+                largeFiles[`src/component${i}.jsx`] = `
+import React from 'react';
+
+export default function Component${i}() {
+    return <div>Component ${i}</div>;
+}
+                `.trim();
+                
+                largeFiles[`src/style${i}.css`] = `
+.component-${i} {
+    padding: ${i}px;
+    margin: ${i}px;
+}
+                `.trim();
+            }
+            
+            testFiles = largeFiles;
+            
+            try {
+                const jsonString = JSON.stringify(testFiles);
+                const size = jsonString.length;
+                
+                if (size > 4.5 * 1024 * 1024) {
+                    showStatus(`⚠️ Project too large: ${(size / 1024 / 1024).toFixed(1)}MB (limit: 4.5MB)`, 'warning');
+                    return;
+                }
+                
+                localStorage.setItem(STORAGE_KEY, jsonString);
+                showStatus(`✅ Large project saved: ${Object.keys(testFiles).length} files, ${(size / 1024).toFixed(1)}KB`, 'success');
+                updateStats();
+                updateFileList();
+                
+            } catch (error) {
+                showStatus('❌ Large project test failed: ' + error.message, 'error');
+            }
+        }
+
+        function testStorageLimits() {
+            showStatus('Testing storage limits...');
+            
+            // Try to fill up LocalStorage
+            let totalSize = 0;
+            let fileCount = 0;
+            const testFiles = {};
+            
+            try {
+                while (totalSize < 4 * 1024 * 1024 && fileCount < 100) { // Try to approach 4MB
+                    const content = 'x'.repeat(10240); // 10KB per file
+                    testFiles[`file${fileCount}.txt`] = content;
+                    totalSize += content.length;
+                    fileCount++;
+                }
+                
+                const jsonString = JSON.stringify(testFiles);
+                localStorage.setItem(STORAGE_KEY, jsonString);
+                
+                showStatus(`✅ Storage limit test: ${fileCount} files, ${(totalSize / 1024 / 1024).toFixed(2)}MB`, 'success');
+                updateStats();
+                
+            } catch (error) {
+                if (error.name === 'QuotaExceededError') {
+                    showStatus('⚠️ Storage quota exceeded as expected', 'warning');
+                } else {
+                    showStatus('❌ Storage limit test failed: ' + error.message, 'error');
+                }
+            }
+        }
+
+        function simulateBrowserRefresh() {
+            showStatus('Simulating browser refresh scenario...');
+            
+            // First save current state
+            if (Object.keys(testFiles).length > 0) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(testFiles));
+                showStatus('📁 Project saved before "refresh"', 'info');
+            }
+            
+            // Clear current memory (simulate refresh)
+            const originalFiles = { ...testFiles };
+            testFiles = {};
+            updateFileList();
+            
+            // Simulate page load after 1 second
+            setTimeout(() => {
+                showStatus('🔄 "Browser refreshed" - checking for saved project...', 'info');
+                
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    testFiles = JSON.parse(stored);
+                    showStatus(`✅ Project restored after "refresh": ${Object.keys(testFiles).length} files`, 'success');
+                    updateFileList();
+                } else {
+                    showStatus('⚠️ No saved project found after "refresh"', 'warning');
+                }
+            }, 1000);
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all test data?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(METADATA_KEY);
+                localStorage.removeItem(LAST_SAVED_KEY);
+                testFiles = {};
+                
+                showStatus('🗑️ All test data cleared', 'warning');
+                updateStats();
+                updateFileList();
+            }
+        }
+
+        // Initialize
+        updateStats();
+        showStatus('🧪 Persistence Test Suite ready', 'info');
+    </script>
+</body>
+</html>

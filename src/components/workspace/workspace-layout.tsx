@@ -1,32 +1,174 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Code, Eye, PanelLeft, PanelRight } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import MonacoEditor from '@/components/editor/monaco-editor'
-import AIChat from '@/components/ai/ai-chat'
+import ContextAwareAIChat from '@/components/ai/context-aware-chat'
 import FileTree from '@/components/files/file-tree'
-import LivePreview from '@/components/preview/live-preview'
+import WebContainerPreview from '@/components/preview/webcontainer-preview'
+import { WebContainerErrorBoundary } from '@/components/preview/webcontainer-error-boundary'
+import ProjectControls from '@/components/project-controls'
+import { FilePatch } from '@/lib/ai-orchestrator'
+import { useFileWriter } from '@/hooks/use-file-writer'
+import { XmlStreamParser } from '@/lib/streaming-parser'
 import { useProjectStore } from '@/lib/store/projects'
+import { usePersistence } from '@/lib/persistence-hook'
+import { AIOrchestrator } from '@/lib/runtime-repair'
+import { BASE_TEMPLATE, isEmptyProject } from '@/lib/templates'
+import { generateGenesisProject } from '@/lib/ai-orchestrator'
+import { ProjectBlueprint } from '@/lib/blueprint'
+import { useSearchParams } from 'next/navigation'
 
 interface WorkspaceLayoutProps {
   projectId: string
 }
 
 export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
+  // Core State
   const [files, setFiles] = useState<Record<string, string>>({})
   const [activeFile, setActiveFile] = useState<string>('')
   const [activeContent, setActiveContent] = useState<string>('')
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false)
   const [rightPanelCollapsed, setRightPanelCollapsed] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [projectName, setProjectName] = useState(`Project-${projectId}`)
+  const [messages, setMessages] = useState<any[]>([])
+  const hasIgnited = useRef(false)
   
   const { currentProject, updateProjectFiles, fetchProjects } = useProjectStore()
+  const searchParams = useSearchParams()
+  const isGenesis = searchParams.get('genesis') === 'true'
+  
+  // Persistence hook for auto-save and project management
+  const { 
+    isAutoSaving, 
+    save, 
+    load, 
+    hasProject 
+  } = usePersistence({
+    projectId,
+    files,
+    onFilesChange: setFiles,
+    callbacks: {}
+  })
 
-  // Initialize files from project
+  // Initialize stream parser and file writer
+  const streamParser = useRef(new XmlStreamParser())
+  const { handleBlock } = useFileWriter({
+    webContainer: null, // TODO: pass actual webContainer instance
+    setFiles,
+    onTerminal: (log) => console.log(log)
+  })
+
+  // AI Orchestrator for runtime repair (mock for now)
+  const aiOrchestrator: AIOrchestrator = {
+    modifyCodeStreaming: async (context, prompt, callbacks) => {
+      // Mock implementation - would integrate with your actual AI system
+      console.log('AI would process:', prompt)
+      return []
+    },
+    analyzeProjectStructure: (files) => ({
+      type: 'frontend' as const,
+      framework: 'react',
+      entryPoints: ['index.html'],
+      assets: [],
+      components: [],
+      pages: []
+    }),
+    extractDependencies: (files) => {
+      const packageJson = files['package.json']
+      if (packageJson) {
+        try {
+          const pkg = JSON.parse(packageJson)
+          return pkg.dependencies || {}
+        } catch {
+          return {}
+        }
+      }
+      return {}
+    },
+    detectLanguage: (files) => {
+      const hasTs = Object.keys(files).some(f => f.endsWith('.ts') || f.endsWith('.tsx'))
+      return hasTs ? 'typescript' : 'javascript'
+    }
+  }
+
+  // Initialize files from project or persistence
   useEffect(() => {
-    fetchProjects()
-  }, [fetchProjects])
+    const initializeProject = async () => {
+      // First try to load from persistence
+      const savedData = load()
+      if (savedData && !isEmptyProject(savedData.files)) {
+        setFiles(savedData.files)
+        setProjectName(savedData.metadata?.name || `Project-${projectId}`)
+        console.log('✅ Project restored from auto-save:', savedData.metadata?.name)
+        return
+      }
+      
+      // 🚀 IGNITION: Load the Base Template for new users or empty projects
+      console.log('🔥 Ignition: Loading Base Template for new project')
+      setFiles(BASE_TEMPLATE)
+      setProjectName(`Vibe Project ${projectId}`)
+      
+      // Auto-save the template so it persists
+      setTimeout(() => {
+        save(BASE_TEMPLATE, `Vibe Project ${projectId}`)
+      }, 1000)
+      
+      // Select first file for immediate editing
+      const firstFile = Object.keys(BASE_TEMPLATE)[0]
+      setActiveFile(firstFile)
+      setActiveContent((BASE_TEMPLATE as any)[firstFile] || '')
+      
+      // Then try to load from backend store (for future integration)
+      await fetchProjects()
+    }
+    
+    initializeProject()
+  }, [fetchProjects, load, projectId, save])
+
+  // Genesis ignition effect
+  useEffect(() => {
+    const igniteGenesis = async () => {
+      if (hasIgnited.current) return
+
+      const empty = isEmptyProject(files)
+      if (!isGenesis || !empty) return
+
+      hasIgnited.current = true
+      
+      const storedBlueprint = localStorage.getItem(`genesis_blueprint_${projectId}`)
+      if (!storedBlueprint) {
+        console.warn("Genesis flag present but no blueprint found.")
+        return
+      }
+      
+      const blueprint = JSON.parse(storedBlueprint) as ProjectBlueprint
+      localStorage.removeItem(`genesis_blueprint_${projectId}`)
+      
+      console.log('🚀 Genesis ignition for:', blueprint)
+      
+      try {
+        await generateGenesisProject(blueprint, (chunk) => {
+          // Parse the incoming XML chunk
+          const blocks = streamParser.current.parse(chunk)
+          
+          // Process resulting blocks (Write files)
+          blocks.forEach(block => {
+            if (block.isComplete) {
+               handleBlock(block)
+            }
+          })
+        })
+        console.log('✅ Genesis build complete')
+      } catch (error) {
+        console.error('❌ Genesis failed:', error)
+      }
+    }
+    
+    igniteGenesis()
+  }, [projectId, isGenesis, files, handleBlock])
 
   const handleFileSelect = (path: string, content: string) => {
     setActiveFile(path)
@@ -37,10 +179,12 @@ export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
     const newFiles = { ...files, [path]: content }
     setFiles(newFiles)
     
+    // Update backend store if available
     if (currentProject) {
       updateProjectFiles(currentProject.id, newFiles)
     }
     
+    // Update active file content
     if (path === activeFile) {
       setActiveContent(content)
     }
@@ -51,10 +195,12 @@ export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
     delete newFiles[path]
     setFiles(newFiles)
     
+    // Update backend store if available
     if (currentProject) {
       updateProjectFiles(currentProject.id, newFiles)
     }
     
+    // Update active file
     if (path === activeFile) {
       const remainingFiles = Object.keys(newFiles)
       if (remainingFiles.length > 0) {
@@ -75,6 +221,7 @@ export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
       const newFiles = { ...files, [fullPath]: `// ${fullPath}\n` }
       setFiles(newFiles)
       
+      // Update backend store if available
       if (currentProject) {
         updateProjectFiles(currentProject.id, newFiles)
       }
@@ -84,19 +231,47 @@ export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
     }
   }
 
-  const handleCodeGenerated = (code: string, language: string) => {
-    const extension = language === 'typescript' ? '.ts' : '.js'
-    const fileName = `generated_${Date.now()}${extension}`
-    const newFiles = { ...files, [fileName]: code }
+  const handleProjectLoad = (loadedFiles: Record<string, string>, metadata?: { name: string; createdAt: number; lastModified: number }) => {
+    setFiles(loadedFiles)
+    setProjectName(metadata?.name || `Project-${projectId}`)
     
-    setFiles(newFiles)
-    
-    if (currentProject) {
-      updateProjectFiles(currentProject.id, newFiles)
+    // Select first file if available
+    const fileKeys = Object.keys(loadedFiles)
+    if (fileKeys.length > 0) {
+      const firstFile = fileKeys[0]
+      setActiveFile(firstFile)
+      setActiveContent(loadedFiles[firstFile])
     }
-    
-    setActiveFile(fileName)
-    setActiveContent(code)
+  }
+  
+  const handleProjectClear = () => {
+    setFiles({})
+    setActiveFile('')
+    setActiveContent('')
+    setProjectName(`Project-${projectId}`)
+  }
+
+  const handleCodeGenerated = (patches: FilePatch[]) => {
+    // Handle patches from context-aware chat
+    patches.forEach(patch => {
+      if (patch.type === 'full' && patch.content) {
+        const newFiles = { ...files, [patch.file]: patch.content }
+        setFiles(newFiles)
+        
+        // Update backend store if available
+        if (currentProject) {
+          updateProjectFiles(currentProject.id, newFiles)
+        }
+        
+        // Update active file content
+        if (patch.file === activeFile) {
+          setActiveContent(patch.content)
+        }
+      } else if (patch.type === 'patch') {
+        // Apply patch logic here using diff engine
+        // This would be implemented with the diff engine
+      }
+    })
   }
 
   const getFileLanguage = (filename: string): string => {
@@ -128,8 +303,24 @@ export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-lg font-semibold text-white">Vibe Coding</h1>
-            <span className="text-sm text-gray-400">Project: {projectId}</span>
+            <span className="text-sm text-gray-400">{projectName}</span>
+            {/* Auto-save indicator */}
+            {isAutoSaving && (
+              <div className="flex items-center space-x-2 px-2 py-1 bg-yellow-900/50 border border-yellow-700 rounded">
+                <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+                <span className="text-xs text-yellow-400">Saving...</span>
+              </div>
+            )}
           </div>
+          
+          {/* Project Controls */}
+          <ProjectControls 
+            files={files}
+            projectName={projectName}
+            onProjectLoad={handleProjectLoad}
+            onProjectClear={handleProjectClear}
+          />
+          
           <div className="flex items-center space-x-2">
             {/* Electro gradient preview toggle button */}
             <div className="group relative inline-block">
@@ -175,7 +366,12 @@ export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
         {/* Left Panel - AI Chat */}
         {!leftPanelCollapsed && (
           <div className="w-96 border-r border-gray-800 bg-gray-900/90 backdrop-blur-sm">
-            <AIChat onCodeGenerated={handleCodeGenerated} />
+            <ContextAwareAIChat 
+              files={files}
+              activeFile={activeFile}
+              onCodeGenerated={handleCodeGenerated}
+              onFileUpdate={handleFileUpdate}
+            />
           </div>
         )}
 
@@ -204,7 +400,16 @@ export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
           {/* Editor or Preview */}
           <div className="flex-1">
             {showPreview ? (
-              <LivePreview files={files} activeFile={activeFile} />
+              /* WebContainer Preview with Circuit Breaker */
+              <WebContainerErrorBoundary>
+                <WebContainerPreview 
+                  files={files} 
+                  onRuntimeError={(error) => {
+                    console.log('Runtime error detected:', error)
+                  }}
+                  aiOrchestrator={aiOrchestrator}
+                />
+              </WebContainerErrorBoundary>
             ) : activeFile ? (
               <MonacoEditor
                 value={activeContent}

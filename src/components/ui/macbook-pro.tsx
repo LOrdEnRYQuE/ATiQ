@@ -44,6 +44,79 @@ export function MacbookPro({
         ry="5"
         height="323.85"
       />
+      
+      {/* IDE Interface Showcase */}
+      <g clipPath="url(#roundedCorners)">
+        {/* Dark IDE Background */}
+        <rect x="74.52" y="21.32" width="501.22" height="323.85" fill="#1e1e1e"/>
+        
+        {/* Top Bar */}
+        <rect x="74.52" y="21.32" width="501.22" height="30" fill="#2d2d30"/>
+        
+        {/* Window Controls */}
+        <circle cx="90" cy="36" r="5" fill="#ff5f56"/>
+        <circle cx="105" cy="36" r="5" fill="#ffbd2e"/>
+        <circle cx="120" cy="36" r="5" fill="#27c93f"/>
+        
+        {/* File Tabs */}
+        <rect x="140" y="26" width="80" height="20" rx="3" fill="#1e1e1e"/>
+        <text x="180" y="39" textAnchor="middle" fill="#cccccc" fontSize="10" fontFamily="monospace">page.tsx</text>
+        
+        <rect x="225" y="26" width="80" height="20" rx="3" fill="#2d2d30"/>
+        <text x="265" y="39" textAnchor="middle" fill="#969696" fontSize="10" fontFamily="monospace">layout.tsx</text>
+        
+        {/* Sidebar */}
+        <rect x="74.52" y="51.32" width="40" height="293.85" fill="#252526"/>
+        
+        {/* Code Editor Area */}
+        <rect x="114.52" y="51.32" width="361.22" height="293.85" fill="#1e1e1e"/>
+        
+        {/* Line Numbers */}
+        <text x="120" y="70" fill="#858585" fontSize="10" fontFamily="monospace">1</text>
+        <text x="120" y="85" fill="#858585" fontSize="10" fontFamily="monospace">2</text>
+        <text x="120" y="100" fill="#858585" fontSize="10" fontFamily="monospace">3</text>
+        <text x="120" y="115" fill="#858585" fontSize="10" fontFamily="monospace">4</text>
+        <text x="120" y="130" fill="#858585" fontSize="10" fontFamily="monospace">5</text>
+        
+        {/* Code Content */}
+        <text x="135" y="70" fill="#569cd6" fontSize="10" fontFamily="monospace">export</text>
+        <text x="175" y="70" fill="#dcdcaa" fontSize="10" fontFamily="monospace">function</text>
+        <text x="225" y="70" fill="#dcdcaa" fontSize="10" fontFamily="monospace">App()</text>
+        <text x="265" y="70" fill="#d4d4d4" fontSize="10" fontFamily="monospace">{"{"}</text>
+        
+        <text x="145" y="85" fill="#c586c0" fontSize="10" fontFamily="monospace">return</text>
+        <text x="185" y="85" fill="#d4d4d4" fontSize="10" fontFamily="monospace">(</text>
+        <text x="195" y="85" fill="#9cdcfe" fontSize="10" fontFamily="monospace">{"<div"}</text>
+        <text x="235" y="85" fill="#ce9178" fontSize="10" fontFamily="monospace">className</text>
+        <text x="285" y="85" fill="#d4d4d4" fontSize="10" fontFamily="monospace">=</text>
+        <text x="295" y="85" fill="#ce9178" fontSize="10" fontFamily="monospace">&quot;app&quot;</text>
+        <text x="325" y="85" fill="#9cdcfe" fontSize="10" fontFamily="monospace">{">"}</text>
+        
+        <text x="145" y="100" fill="#9cdcfe" fontSize="10" fontFamily="monospace">{"<h1>"}</text>
+        <text x="175" y="100" fill="#ce9178" fontSize="10" fontFamily="monospace">AI-Powered</text>
+        <text x="245" y="100" fill="#9cdcfe" fontSize="10" fontFamily="monospace">{"</h1>"}</text>
+        
+        <text x="145" y="115" fill="#9cdcfe" fontSize="10" fontFamily="monospace">{"</div>"}</text>
+        <text x="185" y="115" fill="#d4d4d4" fontSize="10" fontFamily="monospace">)</text>
+        
+        {/* Terminal/Output Panel */}
+        <rect x="114.52" y="280" width="361.22" height="65" fill="#1e1e1e"/>
+        <rect x="114.52" y="280" width="361.22" height="2" fill="#007acc"/>
+        <text x="120" y="295" fill="#4ec9b0" fontSize="9" fontFamily="monospace">$ npm run dev</text>
+        <text x="120" y="310" fill="#cccccc" fontSize="9" fontFamily="monospace">✓ Ready in 2.3s</text>
+        <text x="120" y="325" fill="#4ec9b0" fontSize="9" fontFamily="monospace">➜ Local: http://localhost:3000</text>
+        <text x="120" y="340" fill="#4ec9b0" fontSize="9" fontFamily="monospace">➜ Network: http://192.168.1.100:3000</text>
+        
+        {/* Right Panel - File Explorer */}
+        <rect x="475.74" y="51.32" width="100" height="293.85" fill="#252526"/>
+        <text x="485" y="70" fill="#cccccc" fontSize="9" fontFamily="monospace">EXPLORER</text>
+        <text x="485" y="85" fill="#969696" fontSize="8" fontFamily="monospace">▶ src</text>
+        <text x="495" y="100" fill="#cccccc" fontSize="8" fontFamily="monospace">app</text>
+        <text x="495" y="115" fill="#cccccc" fontSize="8" fontFamily="monospace">components</text>
+        <text x="495" y="130" fill="#cccccc" fontSize="8" fontFamily="monospace">lib</text>
+        <text x="495" y="145" fill="#cccccc" fontSize="8" fontFamily="monospace">styles</text>
+      </g>
+      
       {src && (
         <image
           href={src}

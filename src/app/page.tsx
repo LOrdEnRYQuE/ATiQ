@@ -53,7 +53,7 @@ export default function Home() {
             {/* Left side - Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
               <a href="#features" className="text-[#cccccc] hover:text-white transition-colors">Features</a>
-              <a href="#pricing" className="text-[#cccccc] hover:text-white transition-colors">Pricing</a>
+              <a href="/pricing" className="text-[#cccccc] hover:text-white transition-colors">Pricing</a>
               <a href="#testimonials" className="text-[#cccccc] hover:text-white transition-colors">Testimonials</a>
             </nav>
             
@@ -220,7 +220,6 @@ export default function Home() {
           
           <div className="flex justify-center">
             <MacbookPro 
-              src="http://localhost:3000"
               className="scale-75 md:scale-100"
             />
           </div>
@@ -413,6 +412,137 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Pricing */}
+        <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              Simple, Transparent
+              <span className="bg-linear-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                {" "}Pricing
+              </span>
+            </h2>
+            <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+              Choose the plan that fits your needs. Start free, scale as you grow.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Free Plan */}
+            <Card className="bg-gray-900/60 backdrop-blur-sm border border-gray-800 text-white hover:border-gray-700 transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="text-2xl">Free</CardTitle>
+                <div className="text-4xl font-bold text-white">
+                  $0
+                  <span className="text-lg text-gray-400">/month</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>100 AI requests/month</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Basic code completion</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Community support</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Public projects</span>
+                  </li>
+                </ul>
+                <Button className="w-full bg-gray-800 hover:bg-gray-700 text-white">
+                  Get Started
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Pro Plan */}
+            <Card className="bg-linear-to-br from-blue-600/20 to-purple-600/20 backdrop-blur-sm border-2 border-blue-500 text-white relative transform scale-105">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                  MOST POPULAR
+                </span>
+              </div>
+              <CardHeader>
+                <CardTitle className="text-2xl">Pro</CardTitle>
+                <div className="text-4xl font-bold text-white">
+                  $29
+                  <span className="text-lg text-gray-400">/month</span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>5,000 AI requests/month</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Advanced code generation</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Real-time collaboration</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Private projects</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Priority support</span>
+                  </li>
+                </ul>
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                  Start Free Trial
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Enterprise Plan */}
+            <Card className="bg-gray-900/60 backdrop-blur-sm border border-gray-800 text-white hover:border-gray-700 transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="text-2xl">Enterprise</CardTitle>
+                <div className="text-4xl font-bold text-white">
+                  Custom
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Unlimited AI requests</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Custom AI models</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>SSO & advanced security</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>On-premise deployment</span>
+                  </li>
+                  <li className="flex items-center">
+                    <CheckCircle className="h-5 w-5 text-green-400 mr-3" />
+                    <span>Dedicated support</span>
+                  </li>
+                </ul>
+                <Button className="w-full bg-gray-800 hover:bg-gray-700 text-white">
+                  Contact Sales
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         {/* Testimonials */}
         <section id="testimonials" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
           <div className="text-center mb-20">
@@ -501,12 +631,12 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
               <Link href="/auth">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4 h-auto">
+                <Button size="lg" className="bg-black text-white hover:bg-gray-800 text-lg px-8 py-4 h-auto border border-gray-800 hover:border-yellow-400/50 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-yellow-400/25">
                   Start Free Trial
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="text-white border-white/20 hover:bg-white/10 text-lg px-8 py-4 h-auto">
+              <Button variant="outline" size="lg" className="bg-black text-white border-gray-800 hover:border-yellow-400/50 hover:bg-gray-900 text-lg px-8 py-4 h-auto transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-yellow-400/25">
                 <Github className="mr-2 h-5 w-5" />
                 View on GitHub
               </Button>
@@ -520,11 +650,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-[#007acc] p-2 rounded-lg">
-                  <Code className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-white">Vibe Coding</h3>
+              <div className="mb-4">
+                <img 
+                  src="/ATiQ_Logo.png" 
+                  alt="ATiQ Logo" 
+                  className="h-36 w-auto mx-auto"
+                />
               </div>
               <p className="text-[#cccccc]">
                 The future of AI-powered development is here.
@@ -535,7 +666,7 @@ export default function Home() {
               <h4 className="text-white font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-[#cccccc]">
                 <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="/pricing" className="hover:text-white transition-colors">Pricing</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
               </ul>
@@ -563,7 +694,7 @@ export default function Home() {
           </div>
           
           <div className="border-t border-[#333333] mt-12 pt-8 text-center text-[#cccccc]">
-            <p>&copy; 2026 Vibe Coding. All rights reserved.</p>
+            <p>&copy; 2026 ATiQ. All rights reserved.</p>
           </div>
         </div>
       </footer>

@@ -4,6 +4,9 @@ import { InputValidator, VALIDATION_SCHEMAS } from '@/lib/input-validation'
 import { analytics } from '@/lib/analytics'
 import { supabase } from '@/lib/supabase'
 
+export const maxDuration = 60 // Allow 60 seconds (Hobby) or 300 (Pro)
+export const dynamic = 'force-dynamic'
+
 export async function POST(req: NextRequest) {
   const startTime = Date.now()
 

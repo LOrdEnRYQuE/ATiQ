@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Monitor, Smartphone, Tablet, RotateCcw, ExternalLink } from 'lucide-react'
+import { PreviewFrame } from './preview-frame'
 
 interface LivePreviewProps {
   files: Record<string, string>
@@ -14,6 +15,9 @@ export default function LivePreview({ files, activeFile }: LivePreviewProps) {
   const [error, setError] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
   const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  // Read project metadata from .vibe.json
+  const projectMetadata = files['.vibe.json'] ? JSON.parse(files['.vibe.json']) : null
 
   const viewModes = {
     desktop: { width: '100%', height: '100%', icon: Monitor },
@@ -133,6 +137,11 @@ export default function LivePreview({ files, activeFile }: LivePreviewProps) {
           <div className="flex items-center text-lg font-semibold text-white">
             <Monitor className="h-5 w-5 mr-2 text-cyan-400" />
             Live Preview
+            {projectMetadata && (
+              <span className="ml-2 text-xs text-slate-400 bg-slate-800 px-2 py-1 rounded">
+                {projectMetadata.framework?.toUpperCase()} • {projectMetadata.type?.replace('_', ' ')}
+              </span>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             {/* Electro gradient refresh button */}
@@ -237,13 +246,15 @@ export default function LivePreview({ files, activeFile }: LivePreviewProps) {
                   maxHeight: '100%'
                 }}
               >
-                <iframe
-                  ref={iframeRef}
-                  src={previewUrl}
-                  className="w-full h-full border-0"
-                  title="Live Preview"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
-                />
+                <PreviewFrame metadata={projectMetadata}>
+                  <iframe
+                    ref={iframeRef}
+                    src={previewUrl}
+                    className="w-full h-full border-0"
+                    title="Live Preview"
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-modals"
+                  />
+                </PreviewFrame>
               </div>
             )}
           </div>

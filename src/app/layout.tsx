@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from '@vercel/analytics/react';
+import { ConfigInitializer } from "@/app/_providers/ConfigInitializer";
 import "./globals.css";
 import "../styles/electro.css";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
+        <ConfigInitializer />
         {children}
         <Analytics />
       </body>

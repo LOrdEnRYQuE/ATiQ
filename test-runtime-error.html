@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runtime Error Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+        .success { background: #51cf66; }
+        .warning { background: #ffd43b; color: #333; }
+        .info { background: #339af0; }
+        .error-display {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🕵️ Runtime Error Detection Test</h1>
+        <p>This page tests the ATiQ Spy Script runtime error detection system.</p>
+        
+        <h2>Test Different Error Types:</h2>
+        
+        <button onclick="testUndefinedError()">❌ Undefined Variable Error</button>
+        <button onclick="testNullReference()">❌ Null Reference Error</button>
+        <button onclick="testTypeError()">❌ Type Error</button>
+        <button onclick="testPromiseRejection()">❌ Promise Rejection</button>
+        <button onclick="testConsoleError()">❌ Console Error</button>
+        <button onclick="testNetworkError()">❌ Network Error</button>
+        <button onclick="testSuccess()">✅ Success Message</button>
+        
+        <div id="errorDisplay" class="error-display" style="display: none;">
+            <h3>Last Error Detected:</h3>
+            <div id="errorContent"></div>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+            <h3>🤖 How it works:</h3>
+            <ul>
+                <li>The Spy Script is automatically injected into this page</li>
+                <li>It captures all runtime errors using window.onerror</li>
+                <li>It sends error details via postMessage to the parent window</li>
+                <li>The AI system receives these errors and triggers automatic repair</li>
+                <li>Each error type is analyzed for intelligent fix suggestions</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Test functions that will trigger different error types
+        function testUndefinedError() {
+            // This will cause "undefinedVariable is not defined"
+            try {
+                console.log('Accessing undefined variable...');
+                const result = undefinedVariable.someProperty;
+                console.log('Result:', result);
+            } catch (error) {
+                console.error('❌ Undefined Variable Error:', error.message);
+            }
+        }
+
+        function testNullReference() {
+            // This will cause "Cannot read properties of null"
+            try {
+                console.log('Testing null reference...');
+                const nullObject = null;
+                const result = nullObject.someProperty;
+                console.log('Result:', result);
+            } catch (error) {
+                console.error('❌ Null Reference Error:', error.message);
+            }
+        }
+
+        function testTypeError() {
+            // This will cause a type error
+            try {
+                console.log('Testing type error...');
+                const number = 42;
+                const result = number.toUpperCase(); // Numbers don't have toUpperCase
+                console.log('Result:', result);
+            } catch (error) {
+                console.error('❌ Type Error:', error.message);
+            }
+        }
+
+        function testPromiseRejection() {
+            // This will cause an unhandled promise rejection
+            console.log('Testing promise rejection...');
+            Promise.reject(new Error('Intentional promise rejection for testing'));
+        }
+
+        function testConsoleError() {
+            // This will trigger console.error (which spy script captures)
+            console.error('❌ Intentional console error for testing runtime detection');
+        }
+
+        function testNetworkError() {
+            // This will cause a network error
+            console.log('Testing network error...');
+            fetch('https://nonexistent-domain-for-testing.com/api')
+                .catch(error => {
+                    console.error('❌ Network Error:', error.message);
+                });
+        }
+
+        function testSuccess() {
+            // This should work fine
+            console.log('✅ Success: All systems operational!');
+            alert('✅ Success! This operation completed without errors.');
+        }
+
+        // Display errors that are captured (for debugging)
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'ATIQ_PREVIEW_ERROR') {
+                const errorDisplay = document.getElementById('errorDisplay');
+                const errorContent = document.getElementById('errorContent');
+                
+                errorDisplay.style.display = 'block';
+                errorContent.textContent = JSON.stringify(event.data, null, 2);
+                
+                console.log('🚨 Error captured by spy script:', event.data);
+            }
+        });
+
+        // Log that spy script should be active
+        console.log('🕵️ Test page loaded. Spy script should be active and monitoring for errors.');
+    </script>
+</body>
+</html>
