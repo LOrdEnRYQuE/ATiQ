@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 export default function AuthForm() {
+  console.log('🔍 BASIC DEBUG: AuthForm component rendering')
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -12,6 +14,38 @@ export default function AuthForm() {
   const [error, setError] = useState<string | null>(null)
   
   const router = useRouter()
+  
+  console.log('🔍 BASIC DEBUG: Router available:', !!router)
+  console.log('🔍 BASIC DEBUG: Supabase client available:', !!supabase)
+  
+  // Test Supabase connection immediately
+  React.useEffect(() => {
+    console.log('🔍 BASIC DEBUG: Component mounted, testing Supabase connection')
+    
+    if (supabase) {
+      console.log('🔍 BASIC DEBUG: Testing Supabase auth methods')
+      console.log('🔍 BASIC DEBUG: getUser method available:', typeof supabase.auth.getUser)
+      console.log('🔍 BASIC DEBUG: signInWithPassword method available:', typeof supabase.auth.signInWithPassword)
+      
+      // Test getting current session
+      supabase.auth.getSession().then(({ data, error }) => {
+        console.log('🔍 BASIC DEBUG: Current session test:', {
+          hasSession: !!data.session,
+          hasError: !!error,
+          error: error?.message
+        })
+      }).catch(err => {
+        console.error('🔍 BASIC DEBUG: Session test error:', err)
+      })
+    } else {
+      console.error('🔍 BASIC DEBUG: Supabase client is null/undefined')
+    }
+  }, [])
+
+  const handleTest = () => {
+    console.log('🔍 TEST: Test button clicked!')
+    alert('JavaScript is working! Test button clicked.')
+  }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -197,6 +231,15 @@ export default function AuthForm() {
                 {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
               </button>
             </div>
+            
+            {/* Test button for debugging */}
+            <button
+              type="button"
+              onClick={handleTest}
+              className="w-full px-6 py-3 bg-red-600 text-white font-bold rounded-lg border border-red-700 hover:bg-red-700 transition-all duration-300"
+            >
+              🧪 TEST JavaScript
+            </button>
             
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
