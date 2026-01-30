@@ -6,6 +6,7 @@ import {
   Sparkles, Loader2, Server, Smartphone, Globe, Monitor, 
   Check, ArrowRight, Layout 
 } from "lucide-react"
+import { useUsageGate } from "@/hooks/use-usage-gate"
 
 interface NewProjectWizardProps {
   isOpen: boolean
@@ -27,6 +28,9 @@ export function NewProjectWizard({ isOpen, onClose, onLaunch }: NewProjectWizard
   const [step, setStep] = useState(1)
   const [description, setDescription] = useState("")
   const [isConsulting, setIsConsulting] = useState(false)
+  const [error, setError] = useState("")
+  
+  const { withUsageCheck } = useUsageGate()
   
   const [blueprint, setBlueprint] = useState<ProjectBlueprint>({
     name: "My Project",
@@ -44,29 +48,51 @@ export function NewProjectWizard({ isOpen, onClose, onLaunch }: NewProjectWizard
     setStep(2)
 
     try {
-      const res = await fetch('/api/ai/consult', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: description }),
-      })
-      
-      if (!res.ok) throw new Error("Consultation failed")
-      
-      const data = await res.json()
-      
-      setBlueprint(prev => ({
-        ...prev,
-        ...data,
-        name: generateNameFromDescription(description),
-        description: description
-      }))
-      setStep(3)
-    } catch (e) {
-      console.error(e)
-      setBlueprint(prev => ({ ...prev, description }))
-      setStep(3)
-    } finally {
+      // Use usage gate for AI consultation
+      const result = await withUsageCheck(
+        {
+          operation: 'consult',
+          complexity: 'medium',
+          onQuotaExceeded: (message) => {
+            setError(message)
+            setIsConsulting(false)
+            setStep(1)
+          },
+          onError: (errorMessage) => {
+            setError(errorMessage)
+            setIsConsulting(false)
+            setStep(1)
+          }
+        },
+        async () => {
+          const res = await fetch('/api/ai/consult', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: description }),
+          })
+          
+          if (!res.ok) {
+            throw new Error('Failed to consult AI')
+          }
+          
+          return res.json()
+        }
+      )
+
+      if (result.success && result.data) {
+        setBlueprint(prev => ({
+          ...prev,
+          description: result.data.description,
+          features: result.data.features || [],
+          rationale: result.data.rationale || ""
+        }))
+        setStep(3)
+      }
+    } catch (error) {
+      console.error('AI consultation failed:', error)
+      setError('Failed to get AI recommendations. Please try again.')
       setIsConsulting(false)
+      setStep(1)
     }
   }
 

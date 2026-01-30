@@ -10,6 +10,7 @@ import SidebarMenu from '@/components/sidebar/sidebar-menu'
 import { NewProjectWizard } from '@/components/dashboard/new-project-wizard'
 import { ProjectBlueprint } from '@/lib/blueprint'
 import { useProjectStore } from '@/lib/store/projects'
+import { UsageIndicator } from '@/components/dashboard/usage-indicator'
 
 export default function Dashboard() {
   const router = useRouter()
@@ -91,6 +92,9 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column - Main Content */}
               <div className="lg:col-span-2 space-y-8">
+                {/* Usage Indicator */}
+                <UsageIndicator />
+                
                 {/* Welcome Section */}
                 <div>
                   <h2 className="text-3xl font-bold text-white mb-2">

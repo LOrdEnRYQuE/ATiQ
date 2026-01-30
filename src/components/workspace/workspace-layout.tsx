@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Code, Eye, PanelLeft, PanelRight } from 'lucide-react'
+import { Code, Eye, PanelLeft, PanelRight, Rocket } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import MonacoEditor from '@/components/editor/monaco-editor'
 import ContextAwareAIChat from '@/components/ai/context-aware-chat'
@@ -9,6 +9,7 @@ import FileTree from '@/components/files/file-tree'
 import WebContainerPreview from '@/components/preview/webcontainer-preview'
 import { WebContainerErrorBoundary } from '@/components/preview/webcontainer-error-boundary'
 import ProjectControls from '@/components/project-controls'
+import DeployDialog from '@/components/deployment/deploy-dialog'
 import { FilePatch } from '@/lib/ai-orchestrator'
 import { useFileWriter } from '@/hooks/use-file-writer'
 import { XmlStreamParser } from '@/lib/streaming-parser'
@@ -46,12 +47,7 @@ export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
     save, 
     load, 
     hasProject 
-  } = usePersistence({
-    projectId,
-    files,
-    onFilesChange: setFiles,
-    callbacks: {}
-  })
+  } = usePersistence(files, projectId)
 
   // Initialize stream parser and file writer
   const streamParser = useRef(new XmlStreamParser())
@@ -322,6 +318,30 @@ export default function WorkspaceLayout({ projectId }: WorkspaceLayoutProps) {
           />
           
           <div className="flex items-center space-x-2">
+            {/* Deploy Button */}
+            <DeployDialog files={files} projectName={projectName}>
+              <div className="group relative inline-block">
+                <div className="absolute inset-0 rounded-lg overflow-hidden">
+                  <div className="absolute inset-0 bg-linear-to-r from-green-400 via-blue-400 to-purple-400 opacity-20 animate-pulse" />
+                  <div className="absolute inset-0 bg-linear-to-br from-emerald-500 via-blue-500 to-indigo-500 opacity-30 animate-pulse animation-delay-500" />
+                </div>
+                <div className="absolute inset-0 rounded-lg p-px">
+                  <div className="w-full h-full rounded-lg bg-linear-to-r from-green-400 via-blue-400 to-purple-400 opacity-60 animate-pulse" 
+                       style={{ 
+                         background: 'linear-gradient(45deg, #4ade80, #3b82f6, #a855f7, #4ade80)',
+                         backgroundSize: '200% 200%',
+                         animation: 'electro 2s ease-in-out infinite'
+                       }} />
+                </div>
+                <button 
+                  className="relative px-3 py-1 bg-black text-white text-sm font-bold rounded-lg border border-gray-800 hover:border-green-400/50 hover:bg-gray-900 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-green-400/25 flex items-center"
+                >
+                  <Rocket className="h-4 w-4 mr-1" />
+                  Deploy
+                </button>
+              </div>
+            </DeployDialog>
+
             {/* Electro gradient preview toggle button */}
             <div className="group relative inline-block">
               <div className="absolute inset-0 rounded-lg overflow-hidden">

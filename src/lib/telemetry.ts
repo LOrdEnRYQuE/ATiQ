@@ -33,7 +33,13 @@ type TelemetryEvent =
   | { type: "CRASH"; error_signature?: string; metadata?: Record<string, unknown> }
   | { type: "FEATURE_USED"; feature: string; metadata?: Record<string, unknown> }
   | { type: "SESSION_START"; metadata?: Record<string, unknown> }
-  | { type: "SESSION_END"; metadata?: Record<string, unknown> };
+  | { type: "SESSION_END"; metadata?: Record<string, unknown> }
+  | { type: "PHOENIX_BRANCH_CREATED"; model?: string; success: boolean; metadata?: Record<string, unknown> }
+  | { type: "PHOENIX_FIX_COMMITTED"; model?: string; success: boolean; metadata?: Record<string, unknown> }
+  | { type: "PHOENIX_REBUILD_TRIGGERED"; model?: string; success: boolean; metadata?: Record<string, unknown> }
+  | { type: "PHOENIX_PR_CREATED"; model?: string; success: boolean; metadata?: Record<string, unknown> }
+  | { type: "PHOENIX_SURGERY_COMPLETED"; model?: string; success: boolean; metadata?: Record<string, unknown> }
+  | { type: "PHOENIX_SURGERY_FAILED"; model?: string; success: false; metadata?: Record<string, unknown> };
 
 export async function logTelemetry(event: TelemetryEvent) {
   try {

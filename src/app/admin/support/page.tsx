@@ -93,12 +93,12 @@ export default function Support() {
     }
   };
 
-  const updateTicketStatus = async (ticketId: string, status: string, adminNotes?: string) => {
+  const updateTicketStatus = async (ticketId: string, status: 'open' | 'in_progress' | 'resolved' | 'closed', adminNotes?: string) => {
     try {
       const { error } = await supabase
         .from('support_tickets')
         .update({ 
-          status: status as any,
+          status,
           admin_notes: adminNotes,
           updated_at: new Date().toISOString(),
           resolved_by: status === 'resolved' ? (await supabase.auth.getUser()).data.user?.id : null

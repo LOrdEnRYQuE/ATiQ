@@ -743,6 +743,68 @@ export async function generateGenesisProject(
   }
 }
 
+export async function generatePipelineConfig(target: 'mobile' | 'web' | 'desktop'): Promise<string> {
+  const DEVOPS_PROMPT = `
+    ROLE: DevOps Engineer specializing in CI/CD automation.
+    TASK: Generate complete deployment pipeline configuration for ${target}.
+    
+    RULES:
+    - If 'mobile': Generate both 'eas.json' (Expo config) AND '.github/workflows/deploy-mobile.yml'
+    - If 'web': Generate '.github/workflows/deploy-web.yml' for Vercel deployment
+    - If 'desktop': Generate '.github/workflows/deploy-desktop.yml' for Electron builds
+    
+    REQUIREMENTS:
+    - All workflows must trigger on push to main branch
+    - Use GitHub secrets for API keys (VERCEL_TOKEN, EXPO_TOKEN, etc.)
+    - Include proper build steps and deployment commands
+    - Add error handling and status reporting
+    
+    OUTPUT: Return multiple files in XML format:
+    <file path="filename1">content1</file>
+    <file path="filename2">content2</file>
+  `
+  
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '')
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' })
+    
+    const result = await model.generateContent(DEVOPS_PROMPT)
+    const response = await result.response
+    return response.text()
+  } catch (error) {
+    console.error('Failed to generate pipeline config:', error)
+    throw new Error('Failed to generate deployment pipeline configuration')
+  }
+}
+
+export async function generateExpoConfig(): Promise<string> {
+  const EXPO_PROMPT = `
+    ROLE: Expo DevOps specialist.
+    TASK: Generate production-ready eas.json configuration.
+    
+    REQUIREMENTS:
+    - Include build profiles for iOS (production) and Android (production)
+    - Configure auto-submit to app stores
+    - Set proper build numbers and version management
+    - Include environment variables and secrets handling
+    
+    OUTPUT: Return only the eas.json content in XML format:
+    <file path="eas.json">content</file>
+  `
+  
+  try {
+    const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '')
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' })
+    
+    const result = await model.generateContent(EXPO_PROMPT)
+    const response = await result.response
+    return response.text()
+  } catch (error) {
+    console.error('Failed to generate Expo config:', error)
+    throw new Error('Failed to generate Expo configuration')
+  }
+}
+
 function detectLanguage(files: Record<string, string>): 'typescript' | 'javascript' | 'python' | undefined {
   const fileNames = Object.keys(files)
   

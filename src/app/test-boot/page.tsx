@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import WorkspaceLayout from '@/components/workspace/workspace-layout'
 
-export default function TestBootPage() {
+function TestBootContent() {
+  const searchParams = useSearchParams()
   const [testProjectId] = useState('boot-test-123')
 
   return (
@@ -19,5 +21,13 @@ export default function TestBootPage() {
       {/* Render workspace without AuthGuard for testing */}
       <WorkspaceLayout projectId={testProjectId} />
     </div>
+  )
+}
+
+export default function TestBootPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <TestBootContent />
+    </Suspense>
   )
 }

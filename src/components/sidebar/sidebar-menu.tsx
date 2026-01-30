@@ -12,7 +12,8 @@ import {
   FileText,
   BarChart3,
   HelpCircle,
-  LogOut
+  LogOut,
+  Zap
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -64,6 +65,12 @@ export default function SidebarMenu({ className = '' }: SidebarMenuProps) {
       label: 'Analytics',
       icon: <BarChart3 className="h-5 w-5" />,
       href: '/analytics'
+    },
+    {
+      id: 'integrations',
+      label: 'Integrations',
+      icon: <Zap className="h-5 w-5" />,
+      href: '/integrations'
     },
     {
       id: 'docs',
