@@ -59,9 +59,6 @@ importers:
       lucide-react:
         specifier: ^0.563.0
         version: 0.563.0(react@19.2.4)
-      monaco-editor:
-        specifier: ^0.55.1
-        version: 0.55.1
       motion:
         specifier: ^12.29.2
         version: 12.29.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -138,6 +135,9 @@ importers:
       jest-environment-jsdom:
         specifier: ^30.2.0
         version: 30.2.0
+      monaco-editor:
+        specifier: ^0.55.1
+        version: 0.55.1
       supabase:
         specifier: ^2.39.3
         version: 2.72.9
