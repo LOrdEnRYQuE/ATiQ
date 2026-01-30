@@ -5,6 +5,7 @@ import { triggerPhoenixHealing } from '@/lib/phoenix/phoenix-trigger'
 export type BuildStatus = 'queued' | 'in_progress' | 'success' | 'failure' | 'cancelled'
 
 export interface BuildStep {
+  id: string
   name: string
   status: 'queued' | 'in_progress' | 'success' | 'failure'
   started_at?: string
@@ -81,6 +82,7 @@ export function useBuildStream({ repo, token, runId, pollInterval = 2000, enable
         run_number: run.run_number,
         workflow_id: run.workflow_id,
         jobs: run.jobs.map(job => ({
+          id: job.id.toString(),
           name: job.name,
           status: job.status as BuildStep['status'],
           started_at: job.started_at,
@@ -99,9 +101,9 @@ export function useBuildStream({ repo, token, runId, pollInterval = 2000, enable
     }
   }, [repo, token, logs])
 
-  const fetchJobLogs = useCallback(async (jobId: number): Promise<ParsedLogLine[]> => {
+  const fetchJobLogs = useCallback(async (jobId: string): Promise<ParsedLogLine[]> => {
     try {
-      const logText = await githubObserver.getJobLogs(repo, jobId)
+      const logText = await githubObserver.getJobLogs(repo, token, jobId)
       const lines = logText.split('\n').filter(line => line.trim())
       
       // Parse each line and filter out duplicates
@@ -127,7 +129,7 @@ export function useBuildStream({ repo, token, runId, pollInterval = 2000, enable
         message: `Failed to fetch logs: ${err instanceof Error ? err.message : 'Unknown error'}`
       }]
     }
-  }, [repo])
+  }, [repo, token])
 
   const startPolling = useCallback((runId: number) => {
     if (pollingRef.current) {

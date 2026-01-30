@@ -308,7 +308,7 @@ export default function DeployDialog({ files, projectName, children }: DeployDia
                       <div className="text-xs text-red-400 mt-1">{result.error}</div>
                     )}
                     
-                    {result.url && (
+                    {'url' in result && result.url && (
                       <div className="flex items-center space-x-2 mt-2">
                         <a
                           href={result.url}
@@ -319,18 +319,10 @@ export default function DeployDialog({ files, projectName, children }: DeployDia
                           <ExternalLink className="h-3 w-3" />
                           <span>View Deployment</span>
                         </a>
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          onClick={() => copyToClipboard(result.url!)}
-                          className="text-gray-400 hover:text-white"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
                       </div>
                     )}
 
-                    {result.workflowUrl && (
+                    {'workflowUrl' in result && result.workflowUrl && (
                       <div className="flex items-center space-x-2 mt-2">
                         <a
                           href={result.workflowUrl}
@@ -339,7 +331,7 @@ export default function DeployDialog({ files, projectName, children }: DeployDia
                           className="text-xs text-blue-400 hover:text-blue-300 flex items-center space-x-1"
                         >
                           <ExternalLink className="h-3 w-3" />
-                          <span>View GitHub Actions</span>
+                          <span>View Workflow</span>
                         </a>
                       </div>
                     )}

@@ -73,12 +73,12 @@ class MockAIOrchestrator {
     }
     
     if (prompt.includes('syntax') || prompt.includes('SyntaxError')) {
-      const errorFile = Object.keys(files).find(f => f.endsWith('.js') || f.endsWith('.ts')) || 'index.js'
+      const errorFile = Object.keys(_files).find(f => f.endsWith('.js') || f.endsWith('.ts')) || 'index.js'
       return [{
-        type: 'patch',
+        type: 'patch' as const,
         file: errorFile,
         operations: [{
-          type: 'replace',
+          type: 'replace' as const,
           position: 10,
           content: 'const variable = "fixed"; // Fixed syntax error'
         }]
@@ -86,10 +86,10 @@ class MockAIOrchestrator {
     }
     
     return [{
-      type: 'patch',
+      type: 'patch' as const,
       file: 'package.json',
       operations: [{
-        type: 'insert',
+        type: 'insert' as const,
         position: 0,
         content: '// Phoenix auto-fix applied'
       }]
@@ -168,7 +168,7 @@ class PhoenixTestRunner {
   
   constructor() {
     this.aiOrchestrator = new MockAIOrchestrator()
-    this.phoenixService = getPhoenixLoopService(this.aiOrchestrator, {
+    this.phoenixService = getPhoenixLoopService(this.aiOrchestrator as any, {
       enabled: true,
       autoRetry: true,
       maxRetries: 2,

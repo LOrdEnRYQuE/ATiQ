@@ -130,7 +130,7 @@ class GitHubObserver {
     }
   }
 
-  async getJobLogs(repo: string, jobId: number, token: string): Promise<string> {
+  async getJobLogs(repo: string, jobId: string | number, token: string): Promise<string> {
     try {
       const response = await fetch(`${this.baseUrl}/repos/${repo}/actions/jobs/${jobId}/logs`, {
         headers: {
@@ -267,7 +267,7 @@ export async function waitForRunCompletion(
 
         if (run.status === 'completed') {
           resolve(run)
-        } else if (run.status === 'failure' || run.status === 'cancelled') {
+        } else if (run.conclusion === 'failure' || run.conclusion === 'cancelled') {
           reject(new Error(`Run ${run.status}: ${run.conclusion}`))
         } else {
           setTimeout(poll, pollInterval)

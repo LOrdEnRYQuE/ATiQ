@@ -10,7 +10,7 @@ import {
   DialogHeader, 
   DialogTitle,
   DialogTrigger 
-} from '@/components/ui/simple-dialog'
+} from '@/components/ui/dialog'
 import { 
   useIntegrations, 
   Provider, 
@@ -47,7 +47,7 @@ function ConnectDialog({ provider, config, onSave, children }: ConnectDialogProp
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger>
         {children}
       </DialogTrigger>
       

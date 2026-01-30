@@ -223,7 +223,7 @@ export default function LiveBuildTerminal({
           </div>
         ) : (
           <div className="space-y-1">
-            {logs.map((log, index) => parseLogLine(log, index))}
+            {logs.map((log, index) => parseLogLine(log.message, index))}
           </div>
         )}
       </div>

@@ -18,7 +18,7 @@ interface TestScenario {
 const testScenarios: TestScenario[] = [
   {
     name: 'Missing Dependency',
-    errorLog: 'npm ERR! code ERESOLVE\\nnpm ERR! Cannot find module \\"lucide-react\\"\\nModule not found: Can\\'t resolve \\"lucide-react\\"',
+    errorLog: 'npm ERR! code ERESOLVE\nnpm ERR! Cannot find module "lucide-react"\nModule not found: Can\'t resolve "lucide-react"',
     expectedAction: 'install_package',
     expectedTarget: 'lucide-react',
     expectedConfidence: 0.9
@@ -26,7 +26,7 @@ const testScenarios: TestScenario[] = [
   
   {
     name: 'Syntax Error',
-    errorLog: 'SyntaxError: Unexpected token \'<\\'\\nat Module._compile (internal/modules/cjs/loader.js)',
+    errorLog: 'SyntaxError: Unexpected token \'<\'\nat Module._compile (internal/modules/cjs/loader.js)',
     expectedAction: 'fix_code',
     expectedTarget: 'unknown',
     expectedConfidence: 0.7
@@ -34,7 +34,7 @@ const testScenarios: TestScenario[] = [
   
   {
     name: 'Version Conflict',
-    errorLog: 'npm ERR! code ERESOLVE\\nnpm ERR! Unable to resolve dependency tree\\nnpm ERR! peer dep missing: react@^18.0.0',
+    errorLog: 'npm ERR! code ERESOLVE\nnpm ERR! Unable to resolve dependency tree\nnpm ERR! peer dep missing: react@^18.0.0',
     expectedAction: 'update_package',
     expectedTarget: 'package.json',
     expectedConfidence: 0.8
@@ -42,7 +42,7 @@ const testScenarios: TestScenario[] = [
   
   {
     name: 'Missing Config',
-    errorLog: 'Configuration file not found: tsconfig.json\\nInvalid configuration: TypeScript',
+    errorLog: 'Configuration file not found: tsconfig.json\nInvalid configuration: TypeScript',
     expectedAction: 'create_file',
     expectedTarget: 'tsconfig.json',
     expectedConfidence: 0.9
@@ -146,8 +146,8 @@ export async function testCompleteWorkflow(): Promise<void> {
     jobs: [],
     html_url: 'https://github.com/test/test/actions/runs/123',
     logs: [
-      { timestamp: Date.now(), level: 'error', message: 'npm ERR! Cannot find module "lucide-react"' },
-      { timestamp: Date.now(), level: 'error', message: 'Module not found: Can\\'t resolve "lucide-react"' }
+      { timestamp: new Date().toLocaleTimeString(), level: 'error' as const, message: 'npm ERR! Cannot find module "lucide-react"' },
+      { timestamp: new Date().toLocaleTimeString(), level: 'error' as const, message: 'Module not found: Can\'t resolve "lucide-react"' }
     ]
   }
   

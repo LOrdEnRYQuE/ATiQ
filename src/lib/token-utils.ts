@@ -222,7 +222,12 @@ export function getOptimizationSuggestions(usage: {
   description: string
   potentialSavings: number
 }> {
-  const suggestions = []
+  const suggestions: {
+    type: 'usage' | 'cost' | 'model'
+    title: string
+    description: string
+    potentialSavings: number
+  }[] = []
   
   // Check for excessive Genesis usage
   if (usage.genesis > 10) {

@@ -129,7 +129,7 @@ export class ErrorDiagnostician {
    * Match error against known patterns
    */
   private matchErrorPattern(errorLine: string, context: BuildContext): {
-    type: keyof typeof this.errorPatterns
+    type: keyof typeof ErrorDiagnostician.prototype.errorPatterns
     matches: RegExpMatchArray[]
     confidence: number
   } {
@@ -224,7 +224,7 @@ export class ErrorDiagnostician {
    * Generate structured fix based on diagnosis
    */
   private async generateStructuredFix(
-    diagnosis: { type: keyof typeof this.errorPatterns; matches: RegExpMatchArray[]; confidence: number },
+    diagnosis: { type: keyof typeof ErrorDiagnostician.prototype.errorPatterns; matches: RegExpMatchArray[]; confidence: number },
     context: BuildContext
   ): Promise<DiagnosticResult> {
     const match = diagnosis.matches[0]
