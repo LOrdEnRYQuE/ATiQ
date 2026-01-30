@@ -7,6 +7,11 @@ import { useRouter } from 'next/navigation'
 export default function AuthForm() {
   console.log('🔍 BASIC DEBUG: AuthForm component rendering')
   
+  // Immediate alert to test if component renders at all
+  React.useEffect(() => {
+    alert('🔍 AuthForm component mounted! If you see this, JavaScript is working.')
+  }, [])
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -178,6 +183,8 @@ export default function AuthForm() {
               <div>
                 <input
                   type="email"
+                  id="email"
+                  name="email"
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -188,6 +195,8 @@ export default function AuthForm() {
               <div>
                 <input
                   type="password"
+                  id="password"
+                  name="password"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
