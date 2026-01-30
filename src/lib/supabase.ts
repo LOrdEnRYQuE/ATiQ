@@ -29,9 +29,19 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   }
 })
 
+// Test connection in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  supabase.auth.getSession().then(({ data, error }) => {
+    console.log('🔥 Supabase connection test:', { 
+      hasSession: !!data.session, 
+      error: error?.message 
+    })
+  })
+}
+
 // Create a Supabase client for server-side usage
 export const getSupabaseAdmin = () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_publishable_YPed509PnNetS6kJXPmU0w_C71iB0gi'
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_secret_3dWlNbnZYJ0gnEA6qBMWiQ_AOgmaaqH'
   
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error('Missing Supabase service role key. Please check your environment configuration.')
