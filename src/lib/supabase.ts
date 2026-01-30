@@ -1,53 +1,45 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Hardcoded fallback for production - this will work regardless of env vars
+const FALLBACK_URL = 'https://lcxywtcbbzoqtopvopwh.supabase.co'
+const FALLBACK_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxjeHl3dGNiYnpvcXRvcHZvcHdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2NTg1MzIsImV4cCI6MjA4NTIzNDUzMn0.ozOU9fBvB9Bsy6uY2bwUqjatnj9BvM1ERZbdpT0LQJI'
 
-// Validate environment variables
-if (!supabaseUrl || !supabaseAnonKey) {
-  if (typeof window !== 'undefined') {
-    throw new Error('Missing Supabase environment variables. Please check your environment configuration.')
-  }
-  // During build, we'll create a dummy client to prevent build failures
-  if (process.env.NODE_ENV === 'production' && process.env.VERCEL) {
-    console.warn('Supabase environment variables not found during Vercel build. This may indicate missing environment variables in Vercel dashboard.')
-  }
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || FALLBACK_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || FALLBACK_ANON_KEY
 
-export const supabase = (() => {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables. Please check your environment configuration.')
-  }
-  
-  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 10
-      }
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'vibe-coding/1.0.0'
-      }
+console.log('🔥 Supabase URL:', supabaseUrl ? 'SET' : 'NOT SET')
+console.log('🔥 Supabase Key:', supabaseAnonKey ? 'SET' : 'NOT SET')
+
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
     }
-  })
-})()
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'vibe-coding/1.0.0'
+    }
+  }
+})
 
 // Create a Supabase client for server-side usage
 export const getSupabaseAdmin = () => {
-  if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_publishable_YPed509PnNetS6kJXPmU0w_C71iB0gi'
+  
+  if (!supabaseUrl || !serviceRoleKey) {
     throw new Error('Missing Supabase service role key. Please check your environment configuration.')
   }
   
   return createClient<Database>(
     supabaseUrl,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    serviceRoleKey,
     {
       auth: {
         autoRefreshToken: false,

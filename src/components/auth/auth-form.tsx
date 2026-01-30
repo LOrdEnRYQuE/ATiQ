@@ -5,13 +5,6 @@ import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 
 export default function AuthForm() {
-  console.log('🔍 BASIC DEBUG: AuthForm component rendering')
-  
-  // Immediate alert to test if component renders at all
-  React.useEffect(() => {
-    alert('🔍 AuthForm component mounted! If you see this, JavaScript is working.')
-  }, [])
-  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -19,59 +12,14 @@ export default function AuthForm() {
   const [error, setError] = useState<string | null>(null)
   
   const router = useRouter()
-  
-  console.log('🔍 BASIC DEBUG: Router available:', !!router)
-  console.log('🔍 BASIC DEBUG: Supabase client available:', !!supabase)
-  
-  // Test Supabase connection immediately
-  React.useEffect(() => {
-    console.log('🔍 BASIC DEBUG: Component mounted, testing Supabase connection')
-    
-    if (supabase) {
-      console.log('🔍 BASIC DEBUG: Testing Supabase auth methods')
-      console.log('🔍 BASIC DEBUG: getUser method available:', typeof supabase.auth.getUser)
-      console.log('🔍 BASIC DEBUG: signInWithPassword method available:', typeof supabase.auth.signInWithPassword)
-      
-      // Test getting current session
-      supabase.auth.getSession().then(({ data, error }) => {
-        console.log('🔍 BASIC DEBUG: Current session test:', {
-          hasSession: !!data.session,
-          hasError: !!error,
-          error: error?.message
-        })
-      }).catch(err => {
-        console.error('🔍 BASIC DEBUG: Session test error:', err)
-      })
-    } else {
-      console.error('🔍 BASIC DEBUG: Supabase client is null/undefined')
-    }
-  }, [])
-
-  const handleTest = () => {
-    console.log('🔍 TEST: Test button clicked!')
-    alert('JavaScript is working! Test button clicked.')
-  }
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    console.log('🔍 DEBUG: Starting authentication process')
-    console.log('🔍 DEBUG: Supabase client available:', !!supabase)
-    console.log('🔍 DEBUG: Email:', email)
-    console.log('🔍 DEBUG: Is sign up:', isSignUp)
-
-    if (!supabase) {
-      console.error('🔍 DEBUG: Supabase client not available')
-      setError('Authentication service not available')
-      setLoading(false)
-      return
-    }
-
     try {
       if (isSignUp) {
-        console.log('🔍 DEBUG: Attempting sign up')
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -80,65 +28,39 @@ export default function AuthForm() {
           }
         })
         
-        console.log('🔍 DEBUG: Sign up result:', { error })
-        
         if (error) throw error
         
-        // Show success message for sign up
         setError('Check your email to confirm your account!')
       } else {
-        console.log('🔍 DEBUG: Attempting sign in with password')
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
         })
         
-        console.log('🔍 DEBUG: Sign in result:', { 
-          error, 
-          hasData: !!data,
-          hasSession: !!data?.session,
-          hasUser: !!data?.user,
-          sessionExpiresAt: data?.session?.expires_at
-        })
-        
         if (error) throw error
         
-        // Wait a moment for session to be established
         if (data.session) {
-          console.log('🔍 DEBUG: Session established, setting auth token cookie')
           // Set auth token cookie for middleware
           document.cookie = `auth-token=${data.session.access_token}; path=/; max-age=3600; secure; samesite=strict`
-          console.log('🔍 DEBUG: Auth token cookie set')
           
           // Small delay to ensure session is persisted
-          console.log('🔍 DEBUG: Waiting 500ms for session persistence')
           await new Promise(resolve => setTimeout(resolve, 500))
           
-          console.log('🔍 DEBUG: Redirecting to dashboard')
           router.push('/dashboard')
         } else {
-          console.error('🔍 DEBUG: No session created after successful login')
           setError('Login successful but no session created. Please try again.')
         }
       }
     } catch (error: unknown) {
-      console.error('🔍 DEBUG: Authentication error:', error)
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
-      console.log('🔍 DEBUG: Authentication process completed')
     }
   }
 
   const handleGoogleAuth = async () => {
     setLoading(true)
     setError(null)
-
-    if (!supabase) {
-      setError('Authentication service not available')
-      setLoading(false)
-      return
-    }
 
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -240,15 +162,6 @@ export default function AuthForm() {
                 {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
               </button>
             </div>
-            
-            {/* Test button for debugging */}
-            <button
-              type="button"
-              onClick={handleTest}
-              className="w-full px-6 py-3 bg-red-600 text-white font-bold rounded-lg border border-red-700 hover:bg-red-700 transition-all duration-300"
-            >
-              🧪 TEST JavaScript
-            </button>
             
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
